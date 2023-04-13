@@ -15,14 +15,14 @@ import java.time.LocalDate;
 public class BooksShelves {
     @Id
     @ManyToOne
-    @JoinColumn(name = "book_id")
+    @JoinColumn(name = "book_id",nullable = false)
     private Book book;
 
     @Id
     @ManyToOne
-    @JoinColumn(name = "shelf_id")
+    @JoinColumn(name = "shelf_id",nullable = false)
     private Shelf shelf;
 
-    @Column(name = "date_added")
+    @Column(name = "date_added",nullable = false)
     private LocalDate dateAdded;
 }

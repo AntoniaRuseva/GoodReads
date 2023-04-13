@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "challenges")
 @Getter
@@ -19,10 +21,11 @@ public class Challenge {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @ManyToOne
-    @JoinColumn(name = "user")
+    @JoinColumn(name = "user",nullable = false)
     private User user;
 
-    @Column(name = "number")
+    @Column(name = "number",nullable = false)
     private String number;
-
+    @Column(name = "date_added",nullable = false)
+    private LocalDate dateAdd;
 }

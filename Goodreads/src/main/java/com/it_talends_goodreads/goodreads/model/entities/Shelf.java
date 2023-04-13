@@ -2,7 +2,6 @@ package com.it_talends_goodreads.goodreads.model.entities;
 
 
 import jakarta.persistence.*;
-import jakarta.websocket.OnMessage;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -21,13 +21,13 @@ public class Comment {
     private Comment parent;
 
     @ManyToOne
-    @JoinColumn(name = "writer_id")
+    @JoinColumn(name = "writer_id",nullable = false)
     private User writer;
 
     @Column(name = "likes")
     private Integer likes;
     @ManyToOne
-    @JoinColumn(name = "review_id")
+    @JoinColumn(name = "review_id",nullable = false)
     private Review review;
 
 }

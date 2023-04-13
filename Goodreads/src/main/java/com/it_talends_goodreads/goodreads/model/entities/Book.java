@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "books")
@@ -20,17 +22,17 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "title")
+    @Column(name = "title",nullable = false)
     private String title;
 
     @ManyToOne
-    @JoinColumn(name = "author_id")
+    @JoinColumn(name = "author_id",nullable = false)
     private Author author;
     @ManyToMany
     @JoinTable(name = "books_categories",
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id"))
-    private List<Category> categories;
+    private Set<Category> categories=new HashSet<>();
 
 
     @OneToMany(mappedBy = "book")
@@ -45,10 +47,10 @@ public class Book {
     @Column(name = "rating")
     private Double rating;
 
-    @Column(name = "language")
+    @Column(name = "language",nullable = false)
     private String language;
 
-    @Column(name = "format")
+    @Column(name = "format",nullable = false)
     private String format;
 
     @Column(name = "pages")

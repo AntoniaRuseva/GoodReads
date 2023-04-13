@@ -21,16 +21,16 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Challenge> challenges;
 
-    @Column(name = "first_name")
+    @Column(name = "first_name",nullable = false)
     private String firstName;
 
-    @Column(name = "last_name")
+    @Column(name = "last_name",nullable = false)
     private String lastName;
 
-    @Column(name = "user_name")
+    @Column(name = "user_name",nullable = false)
     private String userName;
 
-    @Column
+    @Column(nullable = false)
     private String password;
 
     @Column(name = "about_me")
@@ -42,7 +42,7 @@ public class User {
     @Column
     private String gender;
 
-    @Column(name = "e-mail")
+    @Column(name = "e-mail",nullable = false)
     private String email;
     @OneToMany(mappedBy ="id")
     private List<Shelf> shelves;
