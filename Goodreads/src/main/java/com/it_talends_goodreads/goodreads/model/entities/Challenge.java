@@ -1,11 +1,9 @@
 package com.it_talends_goodreads.goodreads.model.entities;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -21,11 +19,14 @@ public class Challenge {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @ManyToOne
-    @JoinColumn(name = "user",nullable = false)
+    @JoinColumn(name = "user", nullable = false)
     private User user;
 
-    @Column(name = "number",nullable = false)
-    private String number;
-    @Column(name = "date_added",nullable = false)
-    private LocalDate dateAdd;
+    @Column(name = "number", nullable = false)
+    private int number;
+
+    @Column(name = "date_added", nullable = false)
+
+    private LocalDate dateAdded;
+
 }

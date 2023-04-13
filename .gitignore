@@ -9,3 +9,8 @@ buildNumber.properties
 .mvn/timing.properties
 # https://github.com/takari/maven-wrapper#usage-without-binary-jar
 .mvn/wrapper/maven-wrapper.jar
+goodreads/mvnw
+goodreads/mvnw.cmd
+goodreads/.mvn/wrapper/maven-wrapper.jar
+goodreads/.mvn/wrapper/maven-wrapper.properties
+goodreads/src/main/resources/api.http

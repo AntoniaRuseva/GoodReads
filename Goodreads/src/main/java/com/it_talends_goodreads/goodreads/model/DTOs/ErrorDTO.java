@@ -1,18 +1,20 @@
 package com.it_talends_goodreads.goodreads.model.DTOs;
 
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Setter
+@Builder
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+
 public class ErrorDTO {
     private String msg;
     private int status;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime time;
-
-
 }
