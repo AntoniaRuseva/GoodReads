@@ -64,4 +64,6 @@ public class Book {
 
     @Column(name = "rate_counter")
     private int rateCounter;
+    @OneToMany(mappedBy = "book")
+    private List<Review> reviews;
 }
