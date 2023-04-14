@@ -22,17 +22,17 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "title",nullable = false)
+    @Column(name = "title", nullable = false)
     private String title;
 
     @ManyToOne
-    @JoinColumn(name = "author_id",nullable = false)
+    @JoinColumn(name = "author_id", nullable = false)
     private Author author;
     @ManyToMany
     @JoinTable(name = "books_categories",
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id"))
-    private Set<Category> categories=new HashSet<>();
+    private Set<Category> categories = new HashSet<>();
 
 
     @OneToMany(mappedBy = "book")
@@ -42,15 +42,15 @@ public class Book {
     private LocalDate releasedDate;
 
     @Column(name = "ISBN")
-    private int isbn;
+    private String isbn;
 
     @Column(name = "rating")
     private Double rating;
 
-    @Column(name = "language",nullable = false)
+    @Column(name = "language", nullable = false)
     private String language;
 
-    @Column(name = "format",nullable = false)
+    @Column(name = "format", nullable = false)
     private String format;
 
     @Column(name = "pages")

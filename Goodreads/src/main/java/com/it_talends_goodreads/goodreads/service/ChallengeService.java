@@ -31,7 +31,7 @@ public class ChallengeService extends AbstractService {
             throw new BadRequestException("The number of books for challenge has to be positive and less then 1000.");
         }
 
-        Challenge challenge =  new Challenge();
+        Challenge challenge = new Challenge();
         challenge.setUser(user);
         challenge.setNumber(setChallengeDTO.getNumber());
         challenge.setDateAdded(LocalDate.now());
@@ -88,13 +88,14 @@ public class ChallengeService extends AbstractService {
 
     public List<ChallengeWithoutOwnerDTO> getAllMineChallenges(int userId) {
         List<Challenge> challengeList = challengeRepository.getAllByUser(getUserById(userId));
-        List<ChallengeWithoutOwnerDTO> list =  challengeList
+        List<ChallengeWithoutOwnerDTO> list = challengeList
                 .stream()
                 .map(ch -> mapper.map(ch, ChallengeWithoutOwnerDTO.class))
                 .collect(Collectors.toList());
-        if(list.isEmpty()){
+        if (list.isEmpty()) {
             throw new NotFoundException("You don't have challenges");
         }
         return list;
     }
+
 }

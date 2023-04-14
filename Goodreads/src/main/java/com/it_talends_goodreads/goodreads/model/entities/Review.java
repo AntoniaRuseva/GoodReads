@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "reviews")
@@ -28,9 +30,6 @@ public class Review {
     @JoinColumn(name = "writer_id")
     private User writer;
 
-    @Column(name = "likes")
-    private Integer likes;
-
     @Column(name = "date")
     private LocalDate date;
 
@@ -39,4 +38,10 @@ public class Review {
 
     @OneToMany(mappedBy = "review")
     private List<Comment> comments;
+
+    @ManyToMany
+    @JoinTable(name = "user_likes_reviews",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "reviews_id"))
+    private Set<User> likedBy = new HashSet<>();
 }

@@ -49,5 +49,9 @@ public class User {
 
     @Column(name = "profile_photo")
     private String profilePhoto;
+    @ManyToMany(mappedBy = "likedBy")
+    private List<Review> likedReviews;
+
+
 
 }
