@@ -33,7 +33,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "about_me")
+    @Column(name = "about_me",columnDefinition = "TEXT")
     private String aboutMe;
 
     @Column(name = "link_to_site")
@@ -42,16 +42,15 @@ public class User {
     @Column
     private String gender;
 
-    @Column(name = "e-mail",nullable = false)
+    @Column(name = "e_mail",nullable = false)
     private String email;
     @OneToMany(mappedBy ="id")
     private List<Shelf> shelves;
 
     @Column(name = "profile_photo")
     private String profilePhoto;
+
     @ManyToMany(mappedBy = "likedBy")
     private List<Review> likedReviews;
-
-
 
 }

@@ -1,4 +1,5 @@
 package com.it_talends_goodreads.goodreads.service;
+
 import com.it_talends_goodreads.goodreads.model.DTOs.LoginDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.UpdateProfileDto;
 import com.it_talends_goodreads.goodreads.model.DTOs.UserRegisterDTO;
@@ -14,15 +15,16 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class UserService extends AbstractService{
+public class UserService extends AbstractService {
     @Autowired
     private BCryptPasswordEncoder encoder;
+
     public UserWithoutPassDTO login(LoginDTO loginData) {
-        Optional<User> u= userRepository.findByEmail(loginData.getEmail());
-        if(u.isEmpty() ||!encoder.matches(loginData.getPassword(),u.get().getPassword())){
+        Optional<User> u = userRepository.findByEmail(loginData.getEmail());
+        if (u.isEmpty() || !encoder.matches(loginData.getPassword(), u.get().getPassword())) {
             throw new UnauthorizedException("Wrong credentials");
         }
-        return mapper.map(u,UserWithoutPassDTO.class);
+        return mapper.map(u, UserWithoutPassDTO.class);
     }
 
     public UserWithoutPassDTO register(UserRegisterDTO registerData) {//TODO strong password
@@ -38,12 +40,13 @@ public class UserService extends AbstractService{
         return mapper.map(u, UserWithoutPassDTO.class);
 
     }
-    public UserWithoutPassDTO getById(int id){
-        Optional<User> u=userRepository.findById(id);
-        if(u.isEmpty()){
+
+    public UserWithoutPassDTO getById(int id) {
+        Optional<User> u = userRepository.findById(id);
+        if (u.isEmpty()) {
             throw new NotFoundException("User not found");
         }
-        return mapper.map(u.get(),UserWithoutPassDTO.class);
+        return mapper.map(u.get(), UserWithoutPassDTO.class);
     }
 
     public UserWithoutPassDTO changePass(UpdateProfileDto updateData) {

@@ -7,8 +7,10 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ShelfWithoutUserDTO {
+public class CommentWithoutOwnerDTO {
     private int id;
-    private String name;
-    private int countBooksInTheShelve;
+    private int parentId;
+    private String writerName;
+    private int reviewId;
+    private String content;
 }

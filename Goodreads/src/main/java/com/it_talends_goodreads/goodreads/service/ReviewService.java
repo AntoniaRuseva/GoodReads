@@ -1,5 +1,5 @@
 package com.it_talends_goodreads.goodreads.service;
-import com.it_talends_goodreads.goodreads.model.DTOs.BookInfoDTO;
+import com.it_talends_goodreads.goodreads.model.DTOs.BookCommonInfoDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.CreateReviewDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.ReturnReviewDTO;
 import com.it_talends_goodreads.goodreads.model.entities.Book;
@@ -35,7 +35,7 @@ public class ReviewService extends AbstractService{
         review.setDate(LocalDate.now());
         reviewRepository.save(review);
         ReturnReviewDTO returnReviewDTO = mapper.map(review,ReturnReviewDTO.class);
-        returnReviewDTO.setBookInfo(mapper.map(existBook.get(), BookInfoDTO.class));
+        returnReviewDTO.setBookInfo(mapper.map(existBook.get(), BookCommonInfoDTO.class));
         return returnReviewDTO;
     }
 }

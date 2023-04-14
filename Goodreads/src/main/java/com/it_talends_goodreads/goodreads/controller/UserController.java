@@ -7,6 +7,7 @@ import com.it_talends_goodreads.goodreads.model.DTOs.UserWithoutPassDTO;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
 import com.it_talends_goodreads.goodreads.service.UserService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,15 +18,15 @@ public class UserController extends AbstractController {
     private UserService userService;
 
     @PostMapping("/users/login")
-    public UserWithoutPassDTO login(@RequestBody LoginDTO loginData,HttpSession s){
-        UserWithoutPassDTO u=userService.login(loginData);
-        s.setAttribute("LOGGED",true);
-        s.setAttribute("LOGGED_ID",u.getId());
+    public UserWithoutPassDTO login(@RequestBody LoginDTO loginData, HttpSession s) {
+        UserWithoutPassDTO u = userService.login(loginData);
+        s.setAttribute("LOGGED", true);
+        s.setAttribute("LOGGED_ID", u.getId());
         return u;
     }
 
     @PostMapping("/users")
-    public UserWithoutPassDTO register(@RequestBody UserRegisterDTO registerData) {
+    public UserWithoutPassDTO register(@Valid @RequestBody UserRegisterDTO registerData) {
         return userService.register(registerData);
     }
 
@@ -38,7 +39,7 @@ public class UserController extends AbstractController {
     @PutMapping("/users")
     public UserWithoutPassDTO updateProfile(@RequestBody UpdateProfileDto updateData, HttpSession s) {
         boolean logged = (boolean) s.getAttribute("LOGGED");
-        if(!logged){
+        if (!logged) {
             throw new UnauthorizedException("You have to login");
         }
         return userService.changePass(updateData);

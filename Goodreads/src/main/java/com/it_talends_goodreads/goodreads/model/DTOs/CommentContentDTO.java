@@ -4,11 +4,8 @@ import lombok.*;
 
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ShelfWithoutUserDTO {
-    private int id;
-    private String name;
-    private int countBooksInTheShelve;
+public class CommentContentDTO {
+    private String content;
 }

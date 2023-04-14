@@ -12,7 +12,7 @@ import java.time.LocalDate;
 public class ReturnReviewDTO {
     private int id;
     private UserWithoutPassDTO writer;
-    private BookInfoDTO bookInfo;
+    private BookCommonInfoDTO bookInfo;
     private int likes;
     private String content;
     private LocalDate date;
