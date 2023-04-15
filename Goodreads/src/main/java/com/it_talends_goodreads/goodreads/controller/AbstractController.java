@@ -39,17 +39,17 @@ public abstract class AbstractController {
     public ErrorDTO handleRest(Object e) {
         return generateErrorDTO(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ErrorDTO handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            Map<String, String> errors = new HashMap<>();
+            ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
         return generateErrorDTO(errors, HttpStatus.BAD_REQUEST);
     }
-
 
     private ErrorDTO generateErrorDTO(Object e, HttpStatus s) {
         return ErrorDTO.builder()

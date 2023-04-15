@@ -23,17 +23,17 @@ public class Review {
     private int id;
 
     @ManyToOne
-    @JoinColumn(name = "book_id")
+    @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
     @ManyToOne
-    @JoinColumn(name = "writer_id")
+    @JoinColumn(name = "writer_id", nullable = false)
     private User writer;
 
     @Column(name = "date")
     private LocalDate date;
 
-    @Column(name = "content")
+    @Column(columnDefinition = "TEXT",name = "content", nullable = false)
     private String content;
 
     @OneToMany(mappedBy = "review")
@@ -41,7 +41,7 @@ public class Review {
 
     @ManyToMany
     @JoinTable(name = "user_likes_reviews",
-            joinColumns = @JoinColumn(name = "reviews_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id"))
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "reviews_id"))
     private Set<User> likedBy = new HashSet<>();
 }

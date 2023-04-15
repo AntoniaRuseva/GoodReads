@@ -1,12 +1,14 @@
 package com.it_talends_goodreads.goodreads.controller;
 
+
 import com.it_talends_goodreads.goodreads.model.DTOs.*;
 import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
 import com.it_talends_goodreads.goodreads.service.UserService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.*;;
 
 import java.util.List;
 
@@ -17,7 +19,7 @@ public class UserController extends AbstractController {
     private UserService userService;
 
     @PostMapping("/users/login")
-    public UserWithoutPassDTO login(@RequestBody LoginDTO loginData, HttpSession s) {
+    public UserWithoutPassDTO login(@Valid @RequestBody LoginDTO loginData, HttpSession s) {
         UserWithoutPassDTO u = userService.login(loginData);
         s.setAttribute("LOGGED", true);
         s.setAttribute("LOGGED_ID", u.getId());

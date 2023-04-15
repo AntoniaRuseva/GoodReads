@@ -50,13 +50,13 @@ public class Book {
     @Column(name = "language", nullable = false)
     private String language;
 
-    @Column(name = "format", nullable = false)
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String format;
 
     @Column(name = "pages")
     private int pages;
 
-    @Column(name = "description")
+    @Column(columnDefinition = "TEXT",name = "description")
     private String description;
 
     @Column(name = "cover_photo")
