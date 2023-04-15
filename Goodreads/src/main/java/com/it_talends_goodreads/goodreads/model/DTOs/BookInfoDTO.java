@@ -9,6 +9,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateShelfDTO {
-    private String name;
+public class BookInfoDTO {
+    private int id;
+    private String title;
+    private String authorName;
 }

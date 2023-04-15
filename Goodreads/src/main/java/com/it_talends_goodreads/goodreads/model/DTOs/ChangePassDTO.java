@@ -9,6 +9,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateShelfDTO {
-    private String name;
+public class ChangePassDTO {
+    private String currentPass;
+    private String newPass;
+    private String confirmNewPass;
 }

@@ -11,7 +11,6 @@ import java.time.LocalDate;
 @Table(name = "challenges")
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Challenge {
@@ -19,7 +18,7 @@ public class Challenge {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "user", nullable = false)
     private User user;
 
@@ -27,7 +26,6 @@ public class Challenge {
     private int number;
 
     @Column(name = "date_added", nullable = false)
-
     private LocalDate dateAdded;
 
 }

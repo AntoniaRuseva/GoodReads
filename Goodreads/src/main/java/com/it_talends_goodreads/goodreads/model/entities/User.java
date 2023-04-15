@@ -2,18 +2,20 @@ package com.it_talends_goodreads.goodreads.model.entities;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
 @Entity
 @Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,13 +29,13 @@ public class User {
     @Column(name = "last_name")
     private String lastName;
 
-    @Column(name = "user_name",nullable = false)
+    @Column(name = "user_name", nullable = false)
     private String userName;
 
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "about_me",columnDefinition = "TEXT")
+    @Column(name = "about_me")
     private String aboutMe;
 
     @Column(name = "link_to_site")
@@ -42,15 +44,36 @@ public class User {
     @Column
     private String gender;
 
-    @Column(name = "e_mail",nullable = false)
+    @Column(name = "e-mail", nullable = false)
     private String email;
-    @OneToMany(mappedBy ="id")
+    @OneToMany(mappedBy = "id")
     private List<Shelf> shelves;
 
     @Column(name = "profile_photo")
     private String profilePhoto;
-
     @ManyToMany(mappedBy = "likedBy")
     private List<Review> likedReviews;
 
+    @ManyToMany
+    @JoinTable(
+            name = "users_followers",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "followers_id")
+    )
+    private Set<User> followed = new HashSet<>();
+    @ManyToMany
+    private Set<User> followers=new HashSet<>();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return id == user.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

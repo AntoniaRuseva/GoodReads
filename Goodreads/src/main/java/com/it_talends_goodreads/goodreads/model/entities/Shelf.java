@@ -24,7 +24,7 @@ public class Shelf {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @OneToMany(mappedBy ="shelf")
