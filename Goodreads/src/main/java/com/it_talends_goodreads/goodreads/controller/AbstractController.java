@@ -49,7 +49,7 @@ public abstract class AbstractController {
         ErrorDTO errorDTO = ErrorDTO.builder()
                 .time(LocalDateTime.now())
                 .status(s.value())
-                .build(); 
+                .build();  
         errorDTO.setException(e);
         return errorDTO;
     }
