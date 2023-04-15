@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 @Service
 public class BookService extends AbstractService{
 
+
     public BookDetailedInfoDTO getBookById(int id) {
         Optional<Book> optional = bookRepository.findById(id);
         if (optional.isEmpty()) {
