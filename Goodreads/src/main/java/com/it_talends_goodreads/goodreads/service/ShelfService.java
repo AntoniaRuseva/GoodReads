@@ -5,9 +5,9 @@ import com.it_talends_goodreads.goodreads.model.entities.*;
 import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
 import com.it_talends_goodreads.goodreads.model.exceptions.NotFoundException;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
-import com.it_talends_goodreads.goodreads.model.repositories.BookRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.BooksShelvesRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.ShelfRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,10 +19,9 @@ import java.util.stream.Collectors;
 
 
 @Service
-public class ShelfService extends AbstractService{
+public class ShelfService extends AbstractService {
     @Autowired
     private ShelfRepository shelfRepository;
-
     @Autowired
     private BooksShelvesRepository booksShelvesRepository;
 
@@ -135,7 +134,6 @@ public class ShelfService extends AbstractService{
         if (book.isEmpty()) {
             throw new NotFoundException("No such book");
         }
-
         Optional<BooksShelves> bookShelve = booksShelvesRepository.findBooksShelvesByBookAndShelf(book.get(), shelf);
         if (bookShelve.isEmpty()) {
             throw new NotFoundException("No such combination book-shelf");
@@ -154,6 +152,4 @@ public class ShelfService extends AbstractService{
                         .collect(Collectors.toList()))
                 .build();
     }
-
-
 }

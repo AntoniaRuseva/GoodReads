@@ -44,7 +44,7 @@ public class User {
     @Column
     private String gender;
 
-    @Column(name = "e-mail", nullable = false)
+    @Column(name = "e_mail", nullable = false)
     private String email;
     @OneToMany(mappedBy = "id")
     private List<Shelf> shelves;
@@ -63,6 +63,12 @@ public class User {
     private Set<User> followed = new HashSet<>();
     @ManyToMany
     private Set<User> followers = new HashSet<>();
+    @ManyToMany
+    @JoinTable(name = "user_rate_book",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "book_id"))
+    private Set<Book> ratedBooks = new HashSet<>();
+
 
     @Override
     public boolean equals(Object o) {

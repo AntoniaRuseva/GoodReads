@@ -13,10 +13,9 @@ public abstract class AbstractService {
     @Autowired
     protected UserRepository userRepository;
     @Autowired
-    protected BookRepository bookRepository;
-    @Autowired
     protected ModelMapper mapper;
-
+    @Autowired
+    protected BookRepository bookRepository;
     protected User getUserById(int id) {
         return userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found!"));
     }
