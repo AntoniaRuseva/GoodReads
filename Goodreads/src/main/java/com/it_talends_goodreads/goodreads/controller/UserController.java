@@ -35,7 +35,7 @@ public class UserController extends AbstractController {
     }
 
     @PostMapping("/users")
-    public UserWithoutPassDTO register(@RequestBody UserRegisterDTO registerData) {
+    public UserWithoutPassDTO register(@Valid @RequestBody UserRegisterDTO registerData) {
         return userService.register(registerData);
     }
 
