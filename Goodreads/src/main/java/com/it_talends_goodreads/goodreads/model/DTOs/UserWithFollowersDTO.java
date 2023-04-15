@@ -5,12 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class BookCommonInfoDTO {
+public class UserWithFollowersDTO {
     private int id;
-    private String title;
-    private String authorName;
+    private String email;
+    private String username;
+    private List<UserWithoutPassDTO> followers;
 }

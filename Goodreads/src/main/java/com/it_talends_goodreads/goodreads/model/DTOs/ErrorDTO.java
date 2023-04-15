@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 
 public class ErrorDTO {
-    private Object msg;
+    private String msg;
     private int status;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime time;

@@ -37,7 +37,7 @@ public class Author {
     @Column(name = "born_on")
     private LocalDate bornOn;
 
-    @Column(columnDefinition = "TEXT",name = "biography")
+    @Column(name = "biography")
     private String biography;
 
     @OneToMany(mappedBy = "author")

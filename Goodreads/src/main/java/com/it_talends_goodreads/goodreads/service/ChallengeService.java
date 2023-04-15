@@ -2,7 +2,7 @@ package com.it_talends_goodreads.goodreads.service;
 
 import com.it_talends_goodreads.goodreads.model.DTOs.ChallengeWithOwnerInfoDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.ChallengeWithoutOwnerDTO;
-import com.it_talends_goodreads.goodreads.model.DTOs.CreateChallengeDTO;
+import com.it_talends_goodreads.goodreads.model.DTOs.SetChallengeDTO;
 import com.it_talends_goodreads.goodreads.model.entities.Challenge;
 import com.it_talends_goodreads.goodreads.model.entities.User;
 import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
@@ -11,7 +11,6 @@ import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException
 import com.it_talends_goodreads.goodreads.model.repositories.ChallengeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,43 +21,62 @@ import java.util.stream.Collectors;
 public class ChallengeService extends AbstractService {
     @Autowired
     private ChallengeRepository challengeRepository;
-    @Transactional
-    public ChallengeWithoutOwnerDTO createChallenge(CreateChallengeDTO setChallengeDTO, int userId) {
+
+    public ChallengeWithoutOwnerDTO createChallenge(SetChallengeDTO setChallengeDTO, int userId) {
         User user = getUserById(userId);
         if (challengeRepository.countByUserAndYear(userId) != 0) {
             throw new BadRequestException("You already have challenge for this year.");
         }
+        if (setChallengeDTO.getNumber() <= 0 || setChallengeDTO.getNumber() > 1000) {
+            throw new BadRequestException("The number of books for challenge has to be positive and less then 1000.");
+        }
+
         Challenge challenge = new Challenge();
-            challenge = Challenge
-                    .builder()
-                    .user(user)
-                    .number(setChallengeDTO.getNumber())
-                    .dateAdded(LocalDate.now())
-                    .build();
-            challengeRepository.save(challenge);
+        challenge.setUser(user);
+        challenge.setNumber(setChallengeDTO.getNumber());
+        challenge.setDateAdded(LocalDate.now());
+        challengeRepository.save(challenge);
         return mapper.map(challenge, ChallengeWithoutOwnerDTO.class);
 
     }
-    @Transactional
-    public ChallengeWithoutOwnerDTO updateChallenge(int challengeId, CreateChallengeDTO setChallengeDTO, int userId) {
-        Challenge challenge = exists(challengeId);
-        if (authorized(userId, challenge)) {
-                challenge.setNumber(setChallengeDTO.getNumber());
-                challengeRepository.save(challenge);
 
+    public ChallengeWithoutOwnerDTO updateChallenge(int challengeId, SetChallengeDTO setChallengeDTO, int userId) {
+
+        Optional<Challenge> optional = challengeRepository.findById(challengeId);
+        if (optional.isEmpty()) {
+            throw new BadRequestException("No such challenge");
         }
-        return mapper.map(challenge, ChallengeWithoutOwnerDTO.class);
+
+        if (userId != optional.get().getUser().getId()) {
+            throw new UnauthorizedException("This challenge is not yours. It is not allowed to update it.");
+        }
+
+        if (setChallengeDTO.getNumber() <= 0 || setChallengeDTO.getNumber() > 1000) {
+            throw new BadRequestException("The number of books for challenge has to be positive and less then 1000.");
+        }
+        optional.get().setNumber(setChallengeDTO.getNumber());
+        return mapper.map(optional.get(), ChallengeWithoutOwnerDTO.class);
     }
-    @Transactional
+
     public void deleteChallenge(int id, int userId) {
-        Challenge challenge = exists(id);
-        if (authorized(userId, challenge)) {
-            challengeRepository.deleteById(id);
+        Optional<Challenge> optional = challengeRepository.findById(id);
+        if (optional.isEmpty()) {
+            throw new BadRequestException("No such challenge");
         }
+        if (userId != optional.get().getUser().getId()) {
+            throw new UnauthorizedException("This challenge is not yours. It is not allowed to update it.");
+        }
+        challengeRepository.deleteById(id);
+
     }
 
     public ChallengeWithOwnerInfoDTO getChallenge(int id) {
-        Challenge challenge = exists(id);
+        Optional<Challenge> optional = challengeRepository.findById(id);
+        if (optional.isEmpty()) {
+            throw new BadRequestException("No such challenge");
+        }
+        Challenge challenge = optional.get();
+
         return ChallengeWithOwnerInfoDTO
                 .builder()
                 .id(id)
@@ -79,21 +97,5 @@ public class ChallengeService extends AbstractService {
         }
         return list;
     }
-
-    private Challenge exists(int id) {
-        Optional<Challenge> optional = challengeRepository.findById(id);
-        if (optional.isEmpty()) {
-            throw new BadRequestException("No such challenge");
-        }
-        return optional.get();
-    }
-
-    private boolean authorized(int userId, Challenge challenge) {
-        if (userId != challenge.getUser().getId()) {
-            throw new UnauthorizedException("You are not allowed to make changes");
-        }
-        return true;
-    }
-
 
 }
