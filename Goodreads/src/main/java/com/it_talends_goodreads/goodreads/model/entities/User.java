@@ -35,7 +35,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "about_me")
+    @Column(name = "about_me", columnDefinition = "TEXT")
     private String aboutMe;
 
     @Column(name = "link_to_site")
@@ -62,7 +62,7 @@ public class User {
     )
     private Set<User> followed = new HashSet<>();
     @ManyToMany
-    private Set<User> followers=new HashSet<>();
+    private Set<User> followers = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {

@@ -2,13 +2,15 @@ package com.it_talends_goodreads.goodreads.model.DTOs;
 
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ShelfWithoutUserDTO {
+public class ShelfWithBookInfoDTO {
     private int id;
     private String name;
-    private int countBooksInTheShelve;
+    private List<BookCommonInfoDTO> books;
 }

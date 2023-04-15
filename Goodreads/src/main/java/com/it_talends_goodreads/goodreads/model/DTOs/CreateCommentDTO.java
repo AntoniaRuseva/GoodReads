@@ -7,8 +7,8 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ShelfWithoutUserDTO {
-    private int id;
-    private String name;
-    private int countBooksInTheShelve;
+public class CreateCommentDTO {
+    private int parentId;
+    private int reviewId;
+    private String content;
 }

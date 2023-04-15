@@ -13,10 +13,9 @@ import java.time.LocalDate;
 public class ReturnReviewDTO {
     private int id;
     private UserWithoutPassDTO writer;
-    private BookInfoDTO bookInfo;
+    private BookCommonInfoDTO bookInfo;
     private String content;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate date;
-
 
 }

@@ -14,3 +14,4 @@ goodreads/mvnw.cmd
 goodreads/.mvn/wrapper/maven-wrapper.jar
 goodreads/.mvn/wrapper/maven-wrapper.properties
 goodreads/src/main/resources/api.http
+.idea/
