@@ -1,5 +1,6 @@
 package com.it_talends_goodreads.goodreads.service;
 
+import com.it_talends_goodreads.goodreads.model.DTOs.BookCommonInfoDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.BookInfoDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.CreateReviewDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.ReturnReviewDTO;
@@ -39,13 +40,13 @@ public class ReviewService extends AbstractService {
         review.setDate(LocalDate.now());
         reviewRepository.save(review);
         ReturnReviewDTO returnReviewDTO = mapper.map(review, ReturnReviewDTO.class);
-        returnReviewDTO.setBookInfo(mapper.map(existBook.get(), BookInfoDTO.class));
+        returnReviewDTO.setBookInfo(mapper.map(existBook.get(), BookCommonInfoDTO.class));
         return returnReviewDTO;
     }
 
     public String deleteReview(int id, int userId) {
         Review rev = checkIfReviewExists(id);
-        if(authorized(id,rev)){
+        if (authorized(id, rev)) {
             reviewRepository.deleteById(id);
         }
         return "You have deleted review with id: " + id;
@@ -53,13 +54,13 @@ public class ReviewService extends AbstractService {
 
     public ReturnReviewDTO updateReview(int id, int userId, CreateReviewDTO dto) {
         Review rev = checkIfReviewExists(id);
-       if(authorized(id,rev)){
-           rev.setContent(dto.getContent());
-           reviewRepository.save(rev);
-       }
+        if (authorized(id, rev)) {
+            rev.setContent(dto.getContent());
+            reviewRepository.save(rev);
+        }
         ReturnReviewDTO returnReviewDTO = mapper.map(rev, ReturnReviewDTO.class);
-        returnReviewDTO.setBookInfo(mapper.map(rev.getBook(), BookInfoDTO.class));
-       return returnReviewDTO;
+        returnReviewDTO.setBookInfo(mapper.map(rev.getBook(), BookCommonInfoDTO.class));
+        return returnReviewDTO;
     }
 
     public List<ReturnReviewWithoutBookDTO> getAllReviews(int id) {
@@ -70,27 +71,29 @@ public class ReviewService extends AbstractService {
         return returnList;
     }
 
-    public ReturnReviewWithoutBookDTO likeReview(int id,int userId) {
-         Review rev = checkIfReviewExists(id);
-         Optional<User> u=userRepository.findById(userId);
-         if(rev.getLikedBy().contains(u.get())){
-             rev.getLikedBy().remove(u.get());
-         }else{
-             rev.getLikedBy().add(u.get());
-         }
-         reviewRepository.save(rev);
-         ReturnReviewWithoutBookDTO returnInst=mapper.map(rev, ReturnReviewWithoutBookDTO.class);
-         returnInst.setLikes(rev.getLikedBy().size());
+    public ReturnReviewWithoutBookDTO likeReview(int id, int userId) {
+        Review rev = checkIfReviewExists(id);
+        Optional<User> u = userRepository.findById(userId);
+        if (rev.getLikedBy().contains(u.get())) {
+            rev.getLikedBy().remove(u.get());
+        } else {
+            rev.getLikedBy().add(u.get());
+        }
+        reviewRepository.save(rev);
+        ReturnReviewWithoutBookDTO returnInst = mapper.map(rev, ReturnReviewWithoutBookDTO.class);
+        returnInst.setLikes(rev.getLikedBy().size());
         return returnInst;
     }
-    private Review checkIfReviewExists(int id){
+
+    private Review checkIfReviewExists(int id) {
         Optional<Review> rev = reviewRepository.findById(id);
         if (rev.isEmpty()) {
             throw new NotFoundException("This review doesn't exist.");
         }
         return rev.get();
     }
-    private boolean authorized(int userId,Review rev){
+
+    private boolean authorized(int userId, Review rev) {
         if (userId != rev.getWriter().getId()) {
             throw new UnauthorizedException("You are not allowed to make changes.");
         }
