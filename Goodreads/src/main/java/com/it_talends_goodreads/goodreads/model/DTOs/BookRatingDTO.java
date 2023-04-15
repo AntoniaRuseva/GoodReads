@@ -4,11 +4,10 @@ import lombok.*;
 
 @Getter
 @Setter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class BookCommonInfoDTO {
-    private int id;
-    private String title;
-    private String authorName;
+@Builder
+public class BookRatingDTO {
+    private String rating;
+    private double counter;
 }

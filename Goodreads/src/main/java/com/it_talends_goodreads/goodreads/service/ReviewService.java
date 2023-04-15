@@ -11,6 +11,7 @@ import com.it_talends_goodreads.goodreads.model.entities.User;
 import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
 import com.it_talends_goodreads.goodreads.model.exceptions.NotFoundException;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
+import com.it_talends_goodreads.goodreads.model.repositories.BookRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,6 @@ import java.util.stream.Collectors;
 public class ReviewService extends AbstractService {
     @Autowired
     private ReviewRepository reviewRepository;
-
 
     public ReturnReviewDTO createReview(CreateReviewDTO dto, int userId, int bookId) {
         User u = getUserById(userId);
