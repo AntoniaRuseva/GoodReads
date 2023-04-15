@@ -1,14 +1,12 @@
 package com.it_talends_goodreads.goodreads.model.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -35,6 +33,8 @@ public class Book {
     private Set<Category> categories = new HashSet<>();
 
 
+    @ManyToMany(mappedBy = "ratedBooks")
+    private Set<User> rateByd;
     @OneToMany(mappedBy = "book")
     private List<BooksShelves> booksShelves;
 
@@ -66,4 +66,17 @@ public class Book {
     private int rateCounter;
     @OneToMany(mappedBy = "book")
     private List<Review> reviews;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Book book = (Book) o;
+        return id == book.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }
