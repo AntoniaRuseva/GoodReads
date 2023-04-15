@@ -1,21 +1,27 @@
 package com.it_talends_goodreads.goodreads.service;
 
 import com.it_talends_goodreads.goodreads.model.DTOs.*;
+import com.it_talends_goodreads.goodreads.model.entities.Book;
+import com.it_talends_goodreads.goodreads.model.entities.BooksShelves;
 import com.it_talends_goodreads.goodreads.model.entities.User;
 import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
+import com.it_talends_goodreads.goodreads.model.repositories.BooksShelvesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService extends AbstractService {
     @Autowired
     private BCryptPasswordEncoder encoder;
+    @Autowired
+    private BooksShelvesRepository booksShelvesRepository;
 
     public UserWithoutPassDTO login(LoginDTO loginData) {
         Optional<User> u = userRepository.findByEmail(loginData.getEmail());
@@ -92,5 +98,22 @@ public class UserService extends AbstractService {
         u.setLinkToSite(dto.getLinkToSite());
         userRepository.save(u);
         return mapper.map(u,UserWithoutPassDTO.class);
+    }
+
+    public UserWithFollowersDTO getUsersFollowers(int userId) {
+        User u = getUserById(userId);
+        return mapper.map(u,UserWithFollowersDTO.class);
+    }
+    public Set<UserWithoutPassDTO> getUserByBook(int bookId){
+        Optional<Book> book=bookRepository.findById(bookId);
+        if(book.isEmpty()){
+            throw new BadRequestException("Book doesn't exist.");
+        }
+        List<BooksShelves> booksShelves=booksShelvesRepository.getByBook_Id(bookId);
+        Set<UserWithoutPassDTO> returnUsers=null;
+        for(BooksShelves b:booksShelves){
+            returnUsers.add(mapper.map(b.getShelf().getUser(),UserWithoutPassDTO.class));
+        }
+        return returnUsers;
     }
 }
