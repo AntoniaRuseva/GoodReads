@@ -5,6 +5,7 @@ import com.it_talends_goodreads.goodreads.service.ShelfService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,7 +14,6 @@ import java.util.List;
 public class ShelfController extends AbstractController {
     @Autowired
     private ShelfService shelfService;
-
     @PostMapping("/shelves")
     public ShelfWithoutOwnerAndBooksDTO create(@Valid @RequestBody CreateShelfDTO createShelfDTO, HttpSession session) {
         int userId = getLoggedId(session);
@@ -21,7 +21,7 @@ public class ShelfController extends AbstractController {
     }
 
     @GetMapping("/shelves/users/{id}")
-    public List<ShelfWithoutUserDTO> getAllShelvesByUser(@PathVariable("id") int id) {
+    public List<ShelfWithoutUserDTO> getAllShelvesByUSer(@PathVariable("id") int id) {
         return shelfService.getAllShelvesByUSer(id);
     }
 
@@ -54,6 +54,5 @@ public class ShelfController extends AbstractController {
         int userId = getLoggedId(session);
         return shelfService.removeBook(shelfId, bookId, userId);
     }
-
 
 }

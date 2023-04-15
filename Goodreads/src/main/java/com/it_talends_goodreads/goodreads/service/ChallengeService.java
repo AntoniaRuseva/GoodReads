@@ -29,13 +29,13 @@ public class ChallengeService extends AbstractService {
             throw new BadRequestException("You already have challenge for this year.");
         }
         Challenge challenge = new Challenge();
-            challenge = Challenge
-                    .builder()
-                    .user(user)
-                    .number(setChallengeDTO.getNumber())
-                    .dateAdded(LocalDate.now())
-                    .build();
-            challengeRepository.save(challenge);
+        challenge = Challenge
+                .builder()
+                .user(user)
+                .number(setChallengeDTO.getNumber())
+                .dateAdded(LocalDate.now())
+                .build();
+        challengeRepository.save(challenge);
         return mapper.map(challenge, ChallengeWithoutOwnerDTO.class);
 
     }
@@ -43,8 +43,8 @@ public class ChallengeService extends AbstractService {
     public ChallengeWithoutOwnerDTO updateChallenge(int challengeId, CreateChallengeDTO setChallengeDTO, int userId) {
         Challenge challenge = exists(challengeId);
         if (authorized(userId, challenge)) {
-                challenge.setNumber(setChallengeDTO.getNumber());
-                challengeRepository.save(challenge);
+            challenge.setNumber(setChallengeDTO.getNumber());
+            challengeRepository.save(challenge);
 
         }
         return mapper.map(challenge, ChallengeWithoutOwnerDTO.class);

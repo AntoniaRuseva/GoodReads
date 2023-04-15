@@ -17,14 +17,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+
 @Service
-@Transactional(readOnly = true)
-public class ShelfService extends AbstractService {
+public class ShelfService extends AbstractService{
     @Autowired
     private ShelfRepository shelfRepository;
-
-    @Autowired
-    private BookRepository bookRepository;
 
     @Autowired
     private BooksShelvesRepository booksShelvesRepository;
@@ -157,7 +154,6 @@ public class ShelfService extends AbstractService {
                         .collect(Collectors.toList()))
                 .build();
     }
+
+
 }
-
-
-

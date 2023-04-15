@@ -5,15 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateProfileDTO {
-    private String firstName;
-    private String lastName;
+public class UserWithFollowersDTO {
+    private int id;
+    private String email;
     private String username;
-    private String aboutMe;
-    private String linkToSite;
-    private String gender;
+    private List<UserWithoutPassDTO> followers;
 }

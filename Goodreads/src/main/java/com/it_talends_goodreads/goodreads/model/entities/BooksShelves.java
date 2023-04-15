@@ -19,7 +19,6 @@ public class BooksShelves {
     @JoinColumn(name = "book_id",nullable = false)
     private Book book;
 
-
     @ManyToOne
     @JoinColumn(name = "shelf_id",nullable = false)
     private Shelf shelf;

@@ -4,6 +4,7 @@ import com.it_talends_goodreads.goodreads.model.DTOs.ChallengeWithOwnerInfoDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.ChallengeWithoutOwnerDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.CreateChallengeDTO;
 
+
 import com.it_talends_goodreads.goodreads.service.ChallengeService;
 
 import jakarta.servlet.http.HttpSession;
@@ -28,25 +29,26 @@ public class ChallengeController extends AbstractController {
     @PutMapping("/challenges/{id}")
     public ChallengeWithoutOwnerDTO update(@RequestBody CreateChallengeDTO setChallengeDTO, @PathVariable("id") int id, HttpSession session) {
         int userId = getLoggedId(session);
-        return challengeService.updateChallenge(id, setChallengeDTO, userId);
+        return challengeService.updateChallenge(id
+                , setChallengeDTO, userId);
     }
 
     @DeleteMapping("/challenges/{id}")
     public String delete(@PathVariable("id") int id, HttpSession session) {
-        int userId = getLoggedId(session);
-        challengeService.deleteChallenge(id, userId);
-        return "You delete challenge with id " + id;
+            int userId = getLoggedId(session);
+            challengeService.deleteChallenge(id, userId);
+            return "You delete challenge with id " + id;
     }
 
     @GetMapping("/challenges/{id}")
-    public ChallengeWithOwnerInfoDTO getInfoById(@PathVariable("id") int id, HttpSession session) {
+    public ChallengeWithOwnerInfoDTO getById(@PathVariable("id") int id, HttpSession session) {
         return challengeService.getChallenge(id);
     }
 
     @GetMapping("/challenges")
     public List<ChallengeWithoutOwnerDTO> getAllMine(HttpSession session) {
-        int userId = getLoggedId(session);
-        return challengeService.getAllMineChallenges(userId);
+            int userId = getLoggedId(session);
+            return challengeService.getAllMineChallenges(userId);
 
     }
 

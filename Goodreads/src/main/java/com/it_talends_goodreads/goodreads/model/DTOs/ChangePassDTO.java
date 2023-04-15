@@ -9,11 +9,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateProfileDTO {
-    private String firstName;
-    private String lastName;
-    private String username;
-    private String aboutMe;
-    private String linkToSite;
-    private String gender;
+public class ChangePassDTO {
+    private String currentPass;
+    private String newPass;
+    private String confirmNewPass;
 }

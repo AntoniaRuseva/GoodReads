@@ -1,7 +1,6 @@
 package com.it_talends_goodreads.goodreads.model.entities;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Check;
 
 @Entity
 @Table(name = "comments")
@@ -24,9 +23,8 @@ public class Comment {
     private User writer;
 
     @ManyToOne
-    @JoinColumn(name = "review_id",nullable = false)
+    @JoinColumn(columnDefinition = "TEXT",name = "review_id",nullable = false)
     private Review review;
-
     @Column(columnDefinition = "TEXT",nullable = false)
     private String content;
 

@@ -27,7 +27,6 @@ public class Challenge {
     private int number;
 
     @Column(name = "date_added", nullable = false)
-
     private LocalDate dateAdded;
 
 }

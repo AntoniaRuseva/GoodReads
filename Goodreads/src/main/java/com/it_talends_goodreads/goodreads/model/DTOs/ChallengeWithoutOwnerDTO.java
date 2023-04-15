@@ -1,6 +1,8 @@
 package com.it_talends_goodreads.goodreads.model.DTOs;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.it_talends_goodreads.goodreads.model.entities.User;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
