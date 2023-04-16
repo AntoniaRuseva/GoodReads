@@ -98,4 +98,29 @@ public class UserController extends AbstractController {
         int userId=getLoggedId(s);
        return userService.getUserByBook(bookId);
     }
+    @PostMapping("/users/friends/{id}")
+    public int addFriendRequest(@PathVariable("id") int friendId, HttpSession s){
+        int userId=getLoggedId(s);
+        return userService.addFriendRequest(userId,friendId);
+    }
+    @PostMapping("/users/friends/{id}/acc")
+    public String acceptFriendRequest(@PathVariable("id")int friendId, HttpSession s){
+        int userId=getLoggedId(s);
+        return userService.acceptFriendRequest(userId,friendId);
+    }
+    @PostMapping("/users/friends/{id}/rej")
+    public String rejectFriendRequest(@PathVariable("id")int friendId, HttpSession s){
+        int userId=getLoggedId(s);
+        return userService.rejectFriendRequest(userId,friendId);
+    }
+    @DeleteMapping("/users/friends/{id}")
+    public String removeFriend(@PathVariable("id") int friendId, HttpSession s){
+        int userId=getLoggedId(s);
+        return userService.removeFriend(userId,friendId);
+    }
+    @GetMapping("/users/friends")
+    public List<UserWithoutPassDTO> getFriends(HttpSession s){
+        int userId=getLoggedId(s);
+        return userService.getFriends(userId);
+    }
 }

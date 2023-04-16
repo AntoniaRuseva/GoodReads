@@ -68,7 +68,14 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "book_id"))
     private Set<Book> ratedBooks = new HashSet<>();
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "users_friends",
+            joinColumns = {@JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn(name = "friend_id")})
+    private Set<User> friends = new HashSet<>();
 
+    @ManyToMany(mappedBy = "friends")
+    private Set<User> usersFriends = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {
