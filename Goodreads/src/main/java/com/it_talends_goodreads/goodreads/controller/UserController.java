@@ -93,34 +93,46 @@ public class UserController extends AbstractController {
         int reqId = getLoggedId(s);
         return userService.getUsersFollowers(userId);
     }
+
     @GetMapping("/users/books/{id}")
-    public Set<UserWithoutPassDTO> getUsersByBook(@PathVariable("id") int bookId, HttpSession s){
-        int userId=getLoggedId(s);
-       return userService.getUserByBook(bookId);
+    public Set<UserWithoutPassDTO> getUsersByBook(@PathVariable("id") int bookId, HttpSession s) {
+        int userId = getLoggedId(s);
+        return userService.getUserByBook(bookId);
     }
+
+    @GetMapping("/users/user/{username}")
+    public List<UserWithoutPassDTO> getAllByUserName(@PathVariable("username") String userName, HttpSession s) {
+        int userId = getLoggedId(s);
+        return userService.getAllByUserName(userName);
+    }
+
     @PostMapping("/users/friends/{id}")
-    public int addFriendRequest(@PathVariable("id") int friendId, HttpSession s){
-        int userId=getLoggedId(s);
-        return userService.addFriendRequest(userId,friendId);
+    public int addFriendRequest(@PathVariable("id") int friendId, HttpSession s) {
+        int userId = getLoggedId(s);
+        return userService.addFriendRequest(userId, friendId);
     }
+
     @PostMapping("/users/friends/{id}/acc")
-    public String acceptFriendRequest(@PathVariable("id")int friendId, HttpSession s){
-        int userId=getLoggedId(s);
-        return userService.acceptFriendRequest(userId,friendId);
+    public String acceptFriendRequest(@PathVariable("id") int friendId, HttpSession s) {
+        int userId = getLoggedId(s);
+        return userService.acceptFriendRequest(userId, friendId);
     }
+
     @PostMapping("/users/friends/{id}/rej")
-    public String rejectFriendRequest(@PathVariable("id")int friendId, HttpSession s){
-        int userId=getLoggedId(s);
-        return userService.rejectFriendRequest(userId,friendId);
+    public String rejectFriendRequest(@PathVariable("id") int friendId, HttpSession s) {
+        int userId = getLoggedId(s);
+        return userService.rejectFriendRequest(userId, friendId);
     }
+
     @DeleteMapping("/users/friends/{id}")
-    public String removeFriend(@PathVariable("id") int friendId, HttpSession s){
-        int userId=getLoggedId(s);
-        return userService.removeFriend(userId,friendId);
+    public String removeFriend(@PathVariable("id") int friendId, HttpSession s) {
+        int userId = getLoggedId(s);
+        return userService.removeFriend(userId, friendId);
     }
+
     @GetMapping("/users/friends")
-    public List<UserWithoutPassDTO> getFriends(HttpSession s){
-        int userId=getLoggedId(s);
+    public List<UserWithoutPassDTO> getFriends(HttpSession s) {
+        int userId = getLoggedId(s);
         return userService.getFriends(userId);
     }
 }

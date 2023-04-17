@@ -13,4 +13,5 @@ public class UserWithoutPassDTO {
     private int id;
     private String email;
     private String username;
+    private String profilePhoto;
 }
