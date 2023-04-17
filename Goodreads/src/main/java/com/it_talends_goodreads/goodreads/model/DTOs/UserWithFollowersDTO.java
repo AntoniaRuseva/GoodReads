@@ -16,4 +16,5 @@ public class UserWithFollowersDTO {
     private String email;
     private String username;
     private List<UserWithoutPassDTO> followers;
+    private String profilePhoto;
 }

@@ -25,6 +25,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -82,9 +83,10 @@ public class UserService extends AbstractService {
         if (!updateData.getNewPass().equals(updateData.getConfirmNewPass())) {
             throw new BadRequestException("Mismatching password");
         }
-        User u = new User();
-        u.setPassword(encoder.encode(updateData.getNewPass()));
-        userRepository.save(u);
+        Optional<User> u = userRepository.findById(userId);
+
+        u.get().setPassword(encoder.encode(updateData.getNewPass()));
+        userRepository.save(u.get());
         return mapper.map(u, UserWithoutPassDTO.class);
     }
 
@@ -104,6 +106,9 @@ public class UserService extends AbstractService {
 
     @Transactional
     public int follow(int followerId, int followedId) {
+        if(followedId==followerId){
+            throw new UnauthorizedException("You cannot follow yourself.");
+        }
         User follower = getUserById(followerId);
         User followed = getUserById(followedId);
         followed.getFollowers().add(follower);
@@ -115,8 +120,11 @@ public class UserService extends AbstractService {
     public void unfollow(int unfollowId, int userId) {
         User user = getUserById(userId);
         User unfollowed = getUserById(unfollowId);
+        if(!unfollowed.getFollowed().contains(user)){
+            throw new NotFoundException("You are not following this user.");
+        }
         unfollowed.getFollowers().remove(user);
-        userRepository.save(unfollowed);
+        userRepository.save(user);
     }
 
     @Transactional
@@ -143,15 +151,21 @@ public class UserService extends AbstractService {
             throw new BadRequestException("Book doesn't exist.");
         }
         List<BooksShelves> booksShelves = booksShelvesRepository.getByBook_Id(bookId);
-        Set<UserWithoutPassDTO> returnUsers = null;
+        Set<UserWithoutPassDTO> returnUsers = new HashSet<>();
         for (BooksShelves b : booksShelves) {
             returnUsers.add(mapper.map(b.getShelf().getUser(), UserWithoutPassDTO.class));
+        }
+        if(returnUsers.isEmpty()){
+            throw new NotFoundException("No users reading this book");
         }
         return returnUsers;
     }
 
     @Transactional
     public int addFriendRequest(int requesterId, int receiverId) {
+        if(requesterId==receiverId){
+            throw new UnauthorizedException("You cannot request that friendship.");
+        }
         User requester = getUserById(requesterId);
         User receiver = getUserById(receiverId);
 
@@ -178,9 +192,15 @@ public class UserService extends AbstractService {
 
     @Transactional
     public String acceptFriendRequest(int requesterId, int receiverId) {
-        List<User> users = userRepository.findAllById(Arrays.asList(requesterId, receiverId));
-        User requester = users.get(0);
-        User receiver = users.get(1);
+
+        Optional<User> requesterR = userRepository.findById(requesterId);
+        Optional<User> receiverR = userRepository.findById(receiverId);
+        if(requesterR.isEmpty() || receiverR.isEmpty()){
+            throw new NotFoundException("User not found.");
+        }
+        User requester=requesterR.get();
+        User receiver =receiverR.get();
+
         FriendRequest friendRequest = checkRequestExists(requester, receiver);
 
         if (friendRequest.isRejected() || friendRequest.isAccepted()) {
@@ -201,28 +221,36 @@ public class UserService extends AbstractService {
     }
 
     @Transactional
-    public String rejectFriendRequest(int requesterId, int receiverId) {
-        List<User> users = userRepository.findAllById(Arrays.asList(requesterId, receiverId));
-        User requester = users.get(0);
-        User receiver = users.get(1);
-        FriendRequest friendRequest = checkRequestExists(requester, receiver);
+    public String rejectFriendRequest(int userId, int friendId) {
+
+        Optional<User> friend = userRepository.findById(friendId);
+        Optional<User> user = userRepository.findById(userId);
+        if(friend.isEmpty() || user.isEmpty()){
+            throw new NotFoundException("User not found.");
+        }
+        FriendRequest friendRequest = checkRequestExists(friend.get(), user.get());
 
         if (friendRequest.isRejected() || friendRequest.isAccepted()) {
-            throw new BadRequestException("The request has already been"
+            throw new BadRequestException("This user doesn't want to be your friend"
                     + ((friendRequest.isRejected()) ? " rejected" : "accepted"));
         }
 
         friendRequest.setRejected(true);
         friendRequestRepository.save(friendRequest);
 
-        return "You have rejected " + requesterId + "'s friend request.";
+        return "You have rejected " + friendId + "'s friend request.";
     }
 
     @Transactional
     public String removeFriend(int userId, int friendId) {
-        List<User> users = userRepository.findAllById(Arrays.asList(userId, friendId));
-        User user = users.get(0);
-        User friend = users.get(1);
+
+        Optional<User> userU = userRepository.findById(userId);
+        Optional<User> friendF = userRepository.findById(friendId);
+        if(userU.isEmpty() || friendF.isEmpty()){
+            throw new NotFoundException("User not found.");
+        }
+        User user = userU.get();
+        User friend = friendF.get();
 
         if (!user.getFriends().contains(friend)) {
             throw new NotFoundException("User with id: " + friendId + " is not your friend.");
@@ -242,7 +270,7 @@ public class UserService extends AbstractService {
 
     public List<UserWithoutPassDTO> getFriends(int userId) {
         User user = getUserById(userId);
-        if (user.getFriends().size() == 0) {
+        if (user.getFriends().isEmpty()) {
             throw new NotFoundException("User doesn't have any friends yet.");
         }
         return user.getFriends()
@@ -259,6 +287,7 @@ public class UserService extends AbstractService {
         }
         return friendRequest.get();
     }
+
 
     @SneakyThrows
     public void sendNewTemporaryPassword(EmailDTO email) {
@@ -321,5 +350,16 @@ public class UserService extends AbstractService {
             shuffled.append(c);
         }
         return shuffled.toString();
+    }
+
+    public List<UserWithoutPassDTO> getAllByUserName(String userName) {
+        List<User> users = userRepository.findAllByUserNameContaining(userName);
+        if (users.isEmpty()) {
+            throw new NotFoundException("User doesn't exist!");
+        }
+        return users
+                .stream()
+                .map(u -> mapper.map(u, UserWithoutPassDTO.class))
+                .collect(Collectors.toList());
     }
 }

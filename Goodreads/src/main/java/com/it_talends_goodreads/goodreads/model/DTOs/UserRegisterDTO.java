@@ -23,7 +23,6 @@ public class UserRegisterDTO {
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$",
             message = "To create a strong password, use at least 8 characters," +
                     " including uppercase and lowercase letters, at least one digit and one spacial character")
-
     private String password;
     private String confirmPassword;
     private String firstName;

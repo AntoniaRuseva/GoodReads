@@ -16,4 +16,5 @@ public class UpdateProfileDTO {
     private String aboutMe;
     private String linkToSite;
     private String gender;
+    private String profilePhoto;
 }

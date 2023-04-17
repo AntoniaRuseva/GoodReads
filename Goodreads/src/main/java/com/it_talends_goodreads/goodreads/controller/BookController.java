@@ -27,10 +27,4 @@ public class BookController extends AbstractController {
         int userId = getLoggedId(session);
         return bookService.rate(bookId,bookRateDTO, userId);
     }
-    @PostMapping("/books")
-    public List<BookCommonInfoDTO> getBooksByFilters(@RequestBody BooksCharacteristicDTO booksCharacteristicDTO){
-        return bookService.getBooksByFilters(booksCharacteristicDTO);
-    }
-
-
 }
