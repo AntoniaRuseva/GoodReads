@@ -95,6 +95,9 @@ public class UserService extends AbstractService {
 
     @Transactional
     public int follow(int followerId, int followedId) {
+        if(followedId==followerId){
+            throw new UnauthorizedException("You cannot follow yourself.");
+        }
         User follower = getUserById(followerId);
         User followed = getUserById(followedId);
         followed.getFollowers().add(follower);
@@ -106,6 +109,9 @@ public class UserService extends AbstractService {
     public void unfollow(int unfollowId, int userId) {
         User user = getUserById(userId);
         User unfollowed = getUserById(unfollowId);
+        if(!user.getFollowed().contains(unfollowed)){
+            throw new NotFoundException("You are not following this user.");
+        }
         unfollowed.getFollowers().remove(user);
         userRepository.save(unfollowed);
     }
@@ -143,6 +149,9 @@ public class UserService extends AbstractService {
 
     @Transactional
     public int addFriendRequest(int requesterId, int receiverId) {
+        if(requesterId==receiverId){
+            throw new UnauthorizedException("You cannot request that friendship.");
+        }
         User requester = getUserById(requesterId);
         User receiver = getUserById(receiverId);
 
@@ -169,9 +178,13 @@ public class UserService extends AbstractService {
 
     @Transactional
     public String acceptFriendRequest(int requesterId, int receiverId) {
-        List<User> users = userRepository.findAllById(Arrays.asList(requesterId, receiverId));
-        User requester = users.get(0);
-        User receiver = users.get(1);
+        Optional<User> requesterR = userRepository.findById(requesterId);
+        Optional<User> receiverR = userRepository.findById(receiverId);
+        if(requesterR.isEmpty() || receiverR.isEmpty()){
+            throw new NotFoundException("User not found.");
+        }
+        User requester=requesterR.get();
+        User receiver =receiverR.get();
         FriendRequest friendRequest = checkRequestExists(requester, receiver);
 
         if (friendRequest.isRejected() || friendRequest.isAccepted()) {
@@ -193,10 +206,12 @@ public class UserService extends AbstractService {
 
     @Transactional
     public String rejectFriendRequest(int requesterId, int receiverId) {
-        List<User> users = userRepository.findAllById(Arrays.asList(requesterId, receiverId));
-        User requester = users.get(0);
-        User receiver = users.get(1);
-        FriendRequest friendRequest = checkRequestExists(requester, receiver);
+        Optional<User> requester = userRepository.findById(requesterId);
+        Optional<User> receiver = userRepository.findById(receiverId);
+        if(requester.isEmpty() || receiver.isEmpty()){
+            throw new NotFoundException("User not found.");
+        }
+        FriendRequest friendRequest = checkRequestExists(requester.get(), receiver.get());
 
         if (friendRequest.isRejected() || friendRequest.isAccepted()) {
             throw new BadRequestException("The request has already been"
@@ -211,9 +226,13 @@ public class UserService extends AbstractService {
 
     @Transactional
     public String removeFriend(int userId, int friendId) {
-        List<User> users = userRepository.findAllById(Arrays.asList(userId, friendId));
-        User user = users.get(0);
-        User friend = users.get(1);
+        Optional<User> userU = userRepository.findById(userId);
+        Optional<User> friendF = userRepository.findById(friendId);
+        if(userU.isEmpty() || friendF.isEmpty()){
+            throw new NotFoundException("User not found.");
+        }
+        User user = userU.get();
+        User friend = friendF.get();
 
         if (!user.getFriends().contains(friend)) {
             throw new NotFoundException("User with id: " + friendId + " is not your friend.");
