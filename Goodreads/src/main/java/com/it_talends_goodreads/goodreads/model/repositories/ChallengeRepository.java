@@ -23,5 +23,8 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Integer> {
 
     List<Challenge> getAllByUser(User user);
 
+    Optional<Challenge> getByUser(User user);
+
+
 
 }

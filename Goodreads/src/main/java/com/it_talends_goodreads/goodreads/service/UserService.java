@@ -1,9 +1,11 @@
 package com.it_talends_goodreads.goodreads.service;
 
 import com.it_talends_goodreads.goodreads.model.DTOs.*;
+import com.it_talends_goodreads.goodreads.model.entities.Shelf;
 import com.it_talends_goodreads.goodreads.model.entities.User;
 import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
+import com.it_talends_goodreads.goodreads.model.repositories.ShelfRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
 public class UserService extends AbstractService {
     @Autowired
     private BCryptPasswordEncoder encoder;
+    @Autowired
+    private ShelfRepository shelfRepository;
 
     public UserWithoutPassDTO login(LoginDTO loginData) {
         Optional<User> u = userRepository.findByEmail(loginData.getEmail());
@@ -33,8 +37,15 @@ public class UserService extends AbstractService {
             throw new BadRequestException("Email already exists");
         }
         User u = mapper.map(registerData, User.class);
+
         u.setPassword(encoder.encode(u.getPassword()));
         userRepository.save(u);
+        Shelf shelf1 = Shelf.builder().user(u).name("Read").build();
+        Shelf shelf2 = Shelf.builder().user(u).name("Currently-reading").build();
+        Shelf shelf3 = Shelf.builder().user(u).name("To-read").build();
+        shelfRepository.save(shelf1);
+        shelfRepository.save(shelf2);
+        shelfRepository.save(shelf3);
         return mapper.map(u, UserWithoutPassDTO.class);
 
     }

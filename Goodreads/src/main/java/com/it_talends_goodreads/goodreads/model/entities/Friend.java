@@ -1,10 +1,7 @@
 package com.it_talends_goodreads.goodreads.model.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "users_friends")
@@ -12,6 +9,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
+@IdClass(FriendID.class)
 public class Friend {
     @Id
     @ManyToOne
@@ -22,4 +21,5 @@ public class Friend {
     @ManyToOne
     @JoinColumn(name = "friend_id")
     private User friend;
+
 }

@@ -12,9 +12,9 @@ public class UserRegisterDTO {
     @Email(message = "Invalid email")
     private String email;
     private String username;
-    @Pattern(regexp = "^(?=.[a-z])(?=.[A-Z])(?=.\\d)(?=.[@$!%?&])[A-Za-z\\d@$!%?&]{8,}$",
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$",
             message = "To create a strong password, use at least 8 characters," +
-                    " including uppercase and lowercase letters, at least one digit, and one special symbol.")
+                    " including uppercase and lowercase letters, at least one digit and one spacial character")
     private String password;
     private String confirmPassword;
 }

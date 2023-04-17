@@ -15,6 +15,7 @@ import com.it_talends_goodreads.goodreads.model.repositories.BookRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
 public class ReviewService extends AbstractService {
     @Autowired
     private ReviewRepository reviewRepository;
-
+    @Transactional
     public ReturnReviewDTO createReview(CreateReviewDTO dto, int userId, int bookId) {
         User u = getUserById(userId);
         Optional<Book> existBook = bookRepository.findById(bookId);
@@ -43,7 +44,7 @@ public class ReviewService extends AbstractService {
         returnReviewDTO.setBookInfo(mapper.map(existBook.get(), BookCommonInfoDTO.class));
         return returnReviewDTO;
     }
-
+    @Transactional
     public String deleteReview(int id, int userId) {
         Review rev = checkIfReviewExists(id);
         if (authorized(id, rev)) {
@@ -51,7 +52,7 @@ public class ReviewService extends AbstractService {
         }
         return "You have deleted review with id: " + id;
     }
-
+    @Transactional
     public ReturnReviewDTO updateReview(int id, int userId, CreateReviewDTO dto) {
         Review rev = checkIfReviewExists(id);
         if (authorized(id, rev)) {
@@ -70,7 +71,7 @@ public class ReviewService extends AbstractService {
                         .collect(Collectors.toList());
         return returnList;
     }
-
+    @Transactional
     public ReturnReviewWithoutBookDTO likeReview(int id, int userId) {
         Review rev = checkIfReviewExists(id);
         Optional<User> u = userRepository.findById(userId);

@@ -1,5 +1,6 @@
 package com.it_talends_goodreads.goodreads;
 
+import jakarta.persistence.EntityManager;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,4 +25,5 @@ public class GoodreadsApplication {
     public BCryptPasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
+
 }

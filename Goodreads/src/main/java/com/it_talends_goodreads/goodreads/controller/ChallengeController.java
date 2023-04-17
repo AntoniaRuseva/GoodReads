@@ -1,5 +1,6 @@
 package com.it_talends_goodreads.goodreads.controller;
 
+import com.it_talends_goodreads.goodreads.model.DTOs.ChallengeProgressDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.ChallengeWithOwnerInfoDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.ChallengeWithoutOwnerDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.CreateChallengeDTO;
@@ -49,6 +50,13 @@ public class ChallengeController extends AbstractController {
     public List<ChallengeWithoutOwnerDTO> getAllMine(HttpSession session) {
             int userId = getLoggedId(session);
             return challengeService.getAllMineChallenges(userId);
+
+    }
+
+    @GetMapping("/users/{uid}/challenges/{cid}")
+    public ChallengeProgressDTO getProgressByChallenge(@PathVariable("uid") int id,@PathVariable("cid") int challengeId, HttpSession session) {
+        int userId = getLoggedId(session);
+        return challengeService.getProgressByChallenge(userId, id, challengeId);
 
     }
 

@@ -1,7 +1,6 @@
 package com.it_talends_goodreads.goodreads.model.entities;
 
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 

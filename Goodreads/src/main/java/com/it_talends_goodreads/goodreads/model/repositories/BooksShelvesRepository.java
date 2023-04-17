@@ -14,4 +14,5 @@ public interface BooksShelvesRepository extends JpaRepository<BooksShelves, Inte
     Optional<BooksShelves> findBooksShelvesByBookAndShelf(Book book, Shelf shelf);
     List<BooksShelves> getBooksShelvesByShelf_UserId(int ownerId);
 
+
 }
