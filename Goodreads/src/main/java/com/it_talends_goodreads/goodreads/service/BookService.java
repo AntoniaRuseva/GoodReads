@@ -104,42 +104,37 @@ public class BookService extends AbstractService {
     }
 
     public List<BookCommonInfoDTO> getBooksByFilters(BooksCharacteristicDTO booksCharacteristicDTO) {
-
         JPAQueryFactory query = new JPAQueryFactory(entityManager);
-//       JPAQuery query = new JPAQuery(entityManager);
         QBook book = QBook.book;
 
-//        List<Book> books = new ArrayList<>();
+        List<Book> b = new ArrayList<>();
+        if (booksCharacteristicDTO.getAuthorName() != null) {
+            b = query.selectFrom(book).where(book.author.name.eq(booksCharacteristicDTO.getAuthorName())).fetch();
 
-//        if (booksCharacteristicDTO.getAuthor() != null) {
-        List<Book> b = query.selectFrom(book).where(book.author.name.eq(booksCharacteristicDTO.getAuthorName())).fetch();
+        }
+        if (booksCharacteristicDTO.getCategories() != null) {
+            int size = booksCharacteristicDTO.getCategories().size();
+            for (int i = 0; i < size; i++) {
+                b = query.selectFrom(book).where(book.categories.contains(booksCharacteristicDTO.getCategories().get(i))).fetch();
+            }
+        }
 
-//        }
-//        if (booksCharacteristicDTO.getCategory1() != null) {
-//           b = query.selectFrom(book).where(book.categories.contains(booksCharacteristicDTO.getCategory1())).fetch();
-//        }
-//        if (booksCharacteristicDTO.getCategory2() != null) {
-//            query.selectFrom(book).where(book.categories.contains(booksCharacteristicDTO.getCategory2())).fetch();
-//        }
-//        if (booksCharacteristicDTO.getCategory3() != null) {
-//            query.selectFrom(book).where(book.categories.contains(booksCharacteristicDTO.getCategory3())).fetch();
-//        }
-//        if (booksCharacteristicDTO.getReleasedDate() != null) {
-//            query.selectFrom(book).where(book.releasedDate.after(booksCharacteristicDTO.getReleasedDate())).fetch();
-//        }
-//        if (booksCharacteristicDTO.getLanguage() != null) {
-//            query.selectFrom(book).where(book.language.eq(booksCharacteristicDTO.getLanguage())).fetch();
-//        }
-//        if (booksCharacteristicDTO.getFormat() != null) {
-//            query.selectFrom(book).where(book.format.eq(booksCharacteristicDTO.getFormat())).fetch();
-//        }
-//        if (booksCharacteristicDTO.getPages() != 0) {
-//            query.selectFrom(book).where(book.pages.between(0, booksCharacteristicDTO.getPages())).fetch();
-//        }
-//        if (booksCharacteristicDTO.getRating() != null) {
-//            query.selectFrom(book).where(book.rating.between(1, booksCharacteristicDTO.getRating())).fetch();
-
-            return b.stream().map(bk -> mapper.map(bk, BookCommonInfoDTO.class)).collect(Collectors.toList());
+        if (booksCharacteristicDTO.getReleasedDate() != null) {
+            b = query.selectFrom(book).where(book.releasedDate.after(booksCharacteristicDTO.getReleasedDate())).fetch();
+        }
+        if (booksCharacteristicDTO.getLanguage() != null) {
+            b = query.selectFrom(book).where(book.language.eq(booksCharacteristicDTO.getLanguage())).fetch();
+        }
+        if (booksCharacteristicDTO.getFormat() != null) {
+            b = query.selectFrom(book).where(book.format.eq(booksCharacteristicDTO.getFormat())).fetch();
+        }
+        if (booksCharacteristicDTO.getPages() != 0) {
+            b = query.selectFrom(book).where(book.pages.between(0, booksCharacteristicDTO.getPages())).fetch();
+        }
+        if (booksCharacteristicDTO.getRating() != null) {
+            b = query.selectFrom(book).where(book.rating.between(1, booksCharacteristicDTO.getRating())).fetch();
+        }
+        return b.stream().map(bk -> mapper.map(bk, BookCommonInfoDTO.class)).collect(Collectors.toList());
 
     }
 }

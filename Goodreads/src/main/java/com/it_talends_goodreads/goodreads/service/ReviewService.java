@@ -1,7 +1,7 @@
 package com.it_talends_goodreads.goodreads.service;
 
 import com.it_talends_goodreads.goodreads.model.DTOs.BookCommonInfoDTO;
-import com.it_talends_goodreads.goodreads.model.DTOs.BookInfoDTO;
+
 import com.it_talends_goodreads.goodreads.model.DTOs.CreateReviewDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.ReturnReviewDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.ReturnReviewWithoutBookDTO;
@@ -11,7 +11,7 @@ import com.it_talends_goodreads.goodreads.model.entities.User;
 import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
 import com.it_talends_goodreads.goodreads.model.exceptions.NotFoundException;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
-import com.it_talends_goodreads.goodreads.model.repositories.BookRepository;
+
 import com.it_talends_goodreads.goodreads.model.repositories.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -2,10 +2,6 @@ package com.it_talends_goodreads.goodreads.model.entities;
 
 import jakarta.persistence.Embeddable;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import java.io.Serializable;
 
 @Embeddable

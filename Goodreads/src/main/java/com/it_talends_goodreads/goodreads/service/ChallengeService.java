@@ -5,7 +5,6 @@ import com.it_talends_goodreads.goodreads.model.entities.*;
 import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
 import com.it_talends_goodreads.goodreads.model.exceptions.NotFoundException;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
-import com.it_talends_goodreads.goodreads.model.repositories.BooksShelvesRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.ChallengeRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.FriendRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.ShelfRepository;
@@ -104,9 +103,11 @@ public class ChallengeService extends AbstractService {
     @Transactional
     public ChallengeProgressDTO getProgressByChallenge(int userId, int friendId, int challengeId) {
         User user = getUserById(userId);
-        Optional<Friend> optionalFriend = friendRepository.findByFriend_IdAndUser(friendId, user);
-        if (optionalFriend.isEmpty()) {
-            throw new UnauthorizedException("You can see only yours and your friends challenges.");
+        if(userId != friendId) {
+            Optional<Friend> optionalFriend = friendRepository.findByFriend_IdAndUser(friendId, user);
+            if (optionalFriend.isEmpty()) {
+                throw new UnauthorizedException("You can see only yours and your friends challenges.");
+            }
         }
         User userToCheckProgress = getUserById(friendId);
         Optional<Challenge> optionalChallenge = challengeRepository.findById(challengeId);

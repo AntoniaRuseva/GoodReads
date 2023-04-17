@@ -123,4 +123,9 @@ public class UserController extends AbstractController {
         int userId=getLoggedId(s);
         return userService.getFriends(userId);
     }
+
+    @PostMapping("/resetPassword")
+    public void requestPasswordReset(@RequestBody EmailDTO emailtest) {
+      userService.sendNewTemporaryPassword(emailtest);
+    }
 }

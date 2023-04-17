@@ -13,16 +13,21 @@ import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException
 import com.it_talends_goodreads.goodreads.model.repositories.ShelfRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.BooksShelvesRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.FriendRequestRepository;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.SendFailedException;
+import jakarta.mail.internet.*;
 import jakarta.transaction.Transactional;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.security.SecureRandom;
+import java.util.*;
 import java.util.stream.Collectors;
+
 
 @Service
 public class UserService extends AbstractService {
@@ -34,6 +39,8 @@ public class UserService extends AbstractService {
     private BooksShelvesRepository booksShelvesRepository;
     @Autowired
     private FriendRequestRepository friendRequestRepository;
+    @Autowired
+    private JavaMailSender javaMailSender;
 
     public UserWithoutPassDTO login(LoginDTO loginData) {
         Optional<User> u = userRepository.findByEmail(loginData.getEmail());
@@ -44,7 +51,7 @@ public class UserService extends AbstractService {
     }
 
     @Transactional
-    public UserWithoutPassDTO register(UserRegisterDTO registerData) {//TODO strong password
+    public UserWithoutPassDTO register(UserRegisterDTO registerData) {
         if (!registerData.getPassword().equals(registerData.getConfirmPassword())) {
             throw new BadRequestException("Mismatching password");
         }
@@ -80,6 +87,7 @@ public class UserService extends AbstractService {
         userRepository.save(u);
         return mapper.map(u, UserWithoutPassDTO.class);
     }
+
     @Transactional
     public List<UserWithoutPassDTO> getAll() {
         return userRepository.findAll()
@@ -87,11 +95,13 @@ public class UserService extends AbstractService {
                 .map(u -> mapper.map(u, UserWithoutPassDTO.class))
                 .collect(Collectors.toList());
     }
+
     @Transactional
     public void deleteProfile(int userId) {
         User user = getUserById(userId);
         userRepository.delete(user);
     }
+
     @Transactional
     public int follow(int followerId, int followedId) {
         User follower = getUserById(followerId);
@@ -100,6 +110,7 @@ public class UserService extends AbstractService {
         userRepository.save(followed);
         return followed.getFollowers().size();
     }
+
     @Transactional
     public void unfollow(int unfollowId, int userId) {
         User user = getUserById(userId);
@@ -107,6 +118,7 @@ public class UserService extends AbstractService {
         unfollowed.getFollowers().remove(user);
         userRepository.save(unfollowed);
     }
+
     @Transactional
     public UserWithoutPassDTO updateProfile(UpdateProfileDTO dto, int userId) {
         User u = getUserById(userId);
@@ -137,6 +149,7 @@ public class UserService extends AbstractService {
         }
         return returnUsers;
     }
+
     @Transactional
     public int addFriendRequest(int requesterId, int receiverId) {
         User requester = getUserById(requesterId);
@@ -162,16 +175,17 @@ public class UserService extends AbstractService {
 
         return requesterId;
     }
+
     @Transactional
     public String acceptFriendRequest(int requesterId, int receiverId) {
-        List<User> users=userRepository.findAllById(Arrays.asList(requesterId,receiverId));
+        List<User> users = userRepository.findAllById(Arrays.asList(requesterId, receiverId));
         User requester = users.get(0);
         User receiver = users.get(1);
         FriendRequest friendRequest = checkRequestExists(requester, receiver);
 
         if (friendRequest.isRejected() || friendRequest.isAccepted()) {
             throw new BadRequestException("The request has already been"
-            +((friendRequest.isRejected())?" rejected":"accepted"));
+                    + ((friendRequest.isRejected()) ? " rejected" : "accepted"));
         }
 
         requester.getFriends().add(receiver);
@@ -185,16 +199,17 @@ public class UserService extends AbstractService {
         userRepository.save(receiver);
         return "User " + requesterId + " and user " + receiverId + " are now friends.";
     }
+
     @Transactional
     public String rejectFriendRequest(int requesterId, int receiverId) {
-        List<User> users=userRepository.findAllById(Arrays.asList(requesterId,receiverId));
+        List<User> users = userRepository.findAllById(Arrays.asList(requesterId, receiverId));
         User requester = users.get(0);
         User receiver = users.get(1);
         FriendRequest friendRequest = checkRequestExists(requester, receiver);
 
         if (friendRequest.isRejected() || friendRequest.isAccepted()) {
             throw new BadRequestException("The request has already been"
-                    +((friendRequest.isRejected())?" rejected":"accepted"));
+                    + ((friendRequest.isRejected()) ? " rejected" : "accepted"));
         }
 
         friendRequest.setRejected(true);
@@ -202,9 +217,10 @@ public class UserService extends AbstractService {
 
         return "You have rejected " + requesterId + "'s friend request.";
     }
+
     @Transactional
     public String removeFriend(int userId, int friendId) {
-        List<User> users=userRepository.findAllById(Arrays.asList(userId,friendId));
+        List<User> users = userRepository.findAllById(Arrays.asList(userId, friendId));
         User user = users.get(0);
         User friend = users.get(1);
 
@@ -216,7 +232,7 @@ public class UserService extends AbstractService {
         friend.getFriends().remove(user);
         Optional<FriendRequest> friendRequest = friendRequestRepository.findByRequesterAndReceiver(user, friend);
         if (friendRequest.isEmpty()) {
-            new NotFoundException("Request is already deleted.");
+            throw new NotFoundException("Request is already deleted.");
         }
         friendRequestRepository.delete(friendRequest.get());
         userRepository.save(user);
@@ -229,20 +245,81 @@ public class UserService extends AbstractService {
         if (user.getFriends().size() == 0) {
             throw new NotFoundException("User doesn't have any friends yet.");
         }
-        List<UserWithoutPassDTO> friends =
-                user.getFriends()
-                        .stream()
-                        .map(u -> mapper.map(u, UserWithoutPassDTO.class))
-                        .collect(Collectors.toList());
-        return friends;
+        return user.getFriends()
+                .stream()
+                .map(u -> mapper.map(u, UserWithoutPassDTO.class))
+                .collect(Collectors.toList());
     }
 
     private FriendRequest checkRequestExists(User requester, User receiver) {
         Optional<FriendRequest> friendRequest = friendRequestRepository.findByRequesterAndReceiver(requester, receiver);
         if (friendRequest.isEmpty()) {
-            new BadRequestException(
+            throw new BadRequestException(
                     "Request with requester " + requester.getId() + ", and receiver " + receiver.getId() + " doesn't exist");
         }
         return friendRequest.get();
+    }
+
+    @SneakyThrows
+    public void sendNewTemporaryPassword(EmailDTO email) {
+        try {
+            Optional<User> u = userRepository.findByEmail(email.getEmail());
+            if (u.isEmpty()) {
+                throw new NotFoundException("No user with this email");
+            }
+            User user = u.get();
+            String tempPassword = generateRandomPassword(new Random().nextInt(8, 16));
+            user.setPassword(new BCryptPasswordEncoder().encode(tempPassword));
+            userRepository.save(user);
+
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+
+            mimeMessage.setFrom(new InternetAddress("goodreadsITTalents@gmail.com"));
+            mimeMessage.setRecipient(Message.RecipientType.TO, new InternetAddress(email.getEmail()));
+            mimeMessage.setSubject("New Password");
+            mimeMessage.setText("Your new password is " + tempPassword);
+            javaMailSender.send(mimeMessage);
+        } catch (RuntimeException e) {
+            throw new NotFoundException("Problem with sending the email");
+        }
+    }
+
+    private String generateRandomPassword(int length) {
+
+        final String UPPER_CASE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        final String LOWER_CASE_CHARS = "abcdefghijklmnopqrstuvwxyz";
+        final String DIGITS = "0123456789";
+        final String SPECIAL_CHARS = "@$!%*#?&";
+        final String ALL_CHARS = UPPER_CASE_CHARS + LOWER_CASE_CHARS + DIGITS + SPECIAL_CHARS;
+
+        SecureRandom random = new SecureRandom();
+        StringBuilder password = new StringBuilder();
+
+        password.append(getRandomChar(UPPER_CASE_CHARS, random));
+        password.append(getRandomChar(LOWER_CASE_CHARS, random));
+        password.append(getRandomChar(DIGITS, random));
+        password.append(getRandomChar(SPECIAL_CHARS, random));
+
+        for (int i = 4; i < length + 4; i++) {
+            password.append(getRandomChar(ALL_CHARS, random));
+        }
+        return shuffleString(password.toString());
+    }
+
+    private static char getRandomChar(String chars, SecureRandom random) {
+        return chars.charAt(random.nextInt(chars.length()));
+    }
+
+    private static String shuffleString(String input) {
+        List<Character> chars = new ArrayList<>();
+        for (char c : input.toCharArray()) {
+            chars.add(c);
+        }
+        Collections.shuffle(chars);
+        StringBuilder shuffled = new StringBuilder(input.length());
+        for (char c : chars) {
+            shuffled.append(c);
+        }
+        return shuffled.toString();
     }
 }
