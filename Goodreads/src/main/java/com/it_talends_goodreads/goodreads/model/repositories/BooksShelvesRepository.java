@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface BooksShelvesRepository extends JpaRepository<BooksShelves, Integer> {
     Optional<BooksShelves> findBooksShelvesByBookAndShelf(Book book, Shelf shelf);
     List<BooksShelves> getBooksShelvesByShelf_UserId(int ownerId);
-
+    List<BooksShelves> getByBook_Id(int bookId);
 
 }
+

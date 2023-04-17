@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;;
 
 import java.util.List;
+import java.util.Set;
 
 
 @RestController
@@ -87,9 +88,39 @@ public class UserController extends AbstractController {
         return userService.updateProfile(dto, userId);
     }
 
-//    @GetMapping("/users/{id}/followers")
-//    public UserWithFollowersDTO getUsersFollowers(@PathVariable("id") int userId, HttpSession s) {
-//        int reqId = getLoggedId(s);
-//        return userService.getUsersFollowers(userId);
-//    }
+    @GetMapping("/users/{id}/followers")
+    public UserWithFollowersDTO getUsersFollowers(@PathVariable("id") int userId, HttpSession s) {
+        int reqId = getLoggedId(s);
+        return userService.getUsersFollowers(userId);
+    }
+    @GetMapping("/users/books/{id}")
+    public Set<UserWithoutPassDTO> getUsersByBook(@PathVariable("id") int bookId, HttpSession s){
+        int userId=getLoggedId(s);
+       return userService.getUserByBook(bookId);
+    }
+    @PostMapping("/users/friends/{id}")
+    public int addFriendRequest(@PathVariable("id") int friendId, HttpSession s){
+        int userId=getLoggedId(s);
+        return userService.addFriendRequest(userId,friendId);
+    }
+    @PostMapping("/users/friends/{id}/acc")
+    public String acceptFriendRequest(@PathVariable("id")int friendId, HttpSession s){
+        int userId=getLoggedId(s);
+        return userService.acceptFriendRequest(userId,friendId);
+    }
+    @PostMapping("/users/friends/{id}/rej")
+    public String rejectFriendRequest(@PathVariable("id")int friendId, HttpSession s){
+        int userId=getLoggedId(s);
+        return userService.rejectFriendRequest(userId,friendId);
+    }
+    @DeleteMapping("/users/friends/{id}")
+    public String removeFriend(@PathVariable("id") int friendId, HttpSession s){
+        int userId=getLoggedId(s);
+        return userService.removeFriend(userId,friendId);
+    }
+    @GetMapping("/users/friends")
+    public List<UserWithoutPassDTO> getFriends(HttpSession s){
+        int userId=getLoggedId(s);
+        return userService.getFriends(userId);
+    }
 }

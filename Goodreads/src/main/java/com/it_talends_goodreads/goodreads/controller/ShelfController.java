@@ -5,7 +5,6 @@ import com.it_talends_goodreads.goodreads.service.ShelfService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,8 +20,8 @@ public class ShelfController extends AbstractController {
     }
 
     @GetMapping("/shelves/users/{id}")
-    public List<ShelfWithoutUserDTO> getAllShelvesByUSer(@PathVariable("id") int id) {
-        return shelfService.getAllShelvesByUSer(id);
+    public List<ShelfWithOutUserDTO> getAllShelvesByUSer(@PathVariable("id") int id) {
+        return shelfService.getAllShelvesByUser(id);
     }
 
     @GetMapping("/shelves/{id}")

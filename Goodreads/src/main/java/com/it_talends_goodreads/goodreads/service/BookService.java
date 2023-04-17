@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+
 public class BookService extends AbstractService {
 
     @PersistenceContext

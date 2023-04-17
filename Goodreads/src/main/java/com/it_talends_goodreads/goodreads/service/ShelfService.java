@@ -35,11 +35,11 @@ public class ShelfService extends AbstractService {
         return mapper.map(shelf, ShelfWithoutOwnerAndBooksDTO.class);
     }
 
-    public List<ShelfWithoutUserDTO> getAllShelvesByUSer(int userId) {
+    public List<ShelfWithOutUserDTO> getAllShelvesByUser(int userId) {
         User user = getUserById(userId);
         List<Shelf> list = shelfRepository.findAllByUser(user);
         return list.stream()
-                .map(s -> ShelfWithoutUserDTO
+                .map(s -> ShelfWithOutUserDTO
                         .builder()
                         .id(s.getId())
                         .name(s.getName())
