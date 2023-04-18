@@ -11,33 +11,29 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Optional;
 import java.util.UUID;
+
+import static com.it_talends_goodreads.goodreads.Util.UPLOADS;
 
 @Service
 public class MediaService extends AbstractService {
 
     public UserWithoutPassDTO uploadUserPicture(MultipartFile file, int userId) {
         try {
-            Optional<User> u = userRepository.findById(userId);
-            if (u.isEmpty()) {
-                throw new NotFoundException("User not found!");
-            }
-            User user = u.get();
-
+            User u = userRepository.findById(userId).orElseThrow(()->new NotFoundException("User not found!"));
             String ext = FilenameUtils.getExtension(file.getOriginalFilename());
-            String name = UUID.randomUUID().toString() + "." + ext;
-            File dir = new File("uploads");
+            String name = UUID.randomUUID() + "." + ext;
+            File dir = new File(UPLOADS);
             if (!dir.exists()) {
                 dir.mkdirs();
             }
             File f = new File(dir, name);
             Files.copy(file.getInputStream(), f.toPath());
             String url = dir.getName() + File.separator + f.getName();
-            user.setProfilePhoto(url);
-            userRepository.save(user);
+            u.setProfilePhoto(url);
+            userRepository.save(u);
 
-            return mapper.map(user, UserWithoutPassDTO.class);
+            return mapper.map(u, UserWithoutPassDTO.class);
         }
         catch (IOException e){
             throw new BadRequestException(e.getMessage());
@@ -45,7 +41,7 @@ public class MediaService extends AbstractService {
     }
 
     public File downloadUserPicture(String fileName) {
-        File dir = new File("uploads");
+        File dir = new File(UPLOADS);
         File f = new File(dir,fileName);
         if(f.exists()){
             return f;

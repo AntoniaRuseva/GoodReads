@@ -3,6 +3,7 @@ package com.it_talends_goodreads.goodreads.model.DTOs;
 import com.it_talends_goodreads.goodreads.model.entities.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -11,6 +12,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.it_talends_goodreads.goodreads.Util.*;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -18,22 +21,22 @@ import java.util.Set;
 public class UserRegisterDTO {
     @Email(message = "Invalid email")
     private String email;
+    @NotNull
     private String username;
 
-    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$",
-            message = "To create a strong password, use at least 8 characters," +
-                    " including uppercase and lowercase letters, at least one digit and one spacial character")
+    @Pattern(regexp = PASS_REGEX,
+            message = STRONG_PASS_MSG)
     private String password;
     private String confirmPassword;
     private String firstName;
     private String lastName;
     @Size(min = 1, max = 1000, message = "The size of this \"about me\" must be lower than 1000 character")
     private String aboutMe;
-    @Pattern(regexp = "^((https?|ftp|smtp)://)?(www.)?[a-z0-9]+.[a-z]+(/[a-zA-Z0-9#]+/?)*$",
-            message = "This is not a valid link")
+    @Pattern(regexp = LINK_TO_SITE_REGEX,
+            message = LINK_TO_SITE_MSG)
     private String linkToSite;
 
-    @Pattern(regexp = "[MF]", message = "Gender must be either M or F")
+    @Pattern(regexp = GENDER_REGEX, message = GENDER_MSG)
     private String gender;
 
 }

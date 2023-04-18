@@ -4,10 +4,12 @@ import com.it_talends_goodreads.goodreads.model.DTOs.*;
 import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
 import com.it_talends_goodreads.goodreads.service.UserService;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
@@ -17,13 +19,12 @@ import java.util.Set;
 public class UserController extends AbstractController {
     @Autowired
     private UserService userService;
+    @Autowired
+    private JavaMailSender javaMailSender;
 
     @PostMapping("/users/login")
-    public UserWithoutPassDTO login(@Valid @RequestBody LoginDTO loginData, HttpSession s) {
-        UserWithoutPassDTO u = userService.login(loginData);
-        s.setAttribute("LOGGED", true);
-        s.setAttribute("LOGGED_ID", u.getId());
-        return u;
+    public UserWithoutPassDTO login(@Valid @RequestBody LoginDTO loginData) {
+       return userService.login(loginData);
     }
 
     @PostMapping("/users/logout")
@@ -136,7 +137,8 @@ public class UserController extends AbstractController {
     }
 
     @PostMapping("/resetPassword")
-    public void requestPasswordReset(@RequestBody EmailDTO emailtest) {
-      userService.sendNewTemporaryPassword(emailtest);
+    public void requestPasswordReset(@RequestBody EmailDTO emailTest) {
+      MimeMessage mimeMessage=userService.sendNewTemporaryPassword(emailTest);
+        new Thread(()->javaMailSender.send(mimeMessage));
     }
 }
