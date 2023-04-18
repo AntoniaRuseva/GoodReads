@@ -9,6 +9,8 @@ import lombok.*;
 @AllArgsConstructor
 public class CreateCommentDTO {
     private int parentId;
+    @NonNull
     private int reviewId;
+    @NonNull
     private String content;
 }

@@ -14,8 +14,6 @@ import com.it_talends_goodreads.goodreads.model.repositories.ShelfRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.BooksShelvesRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.FriendRequestRepository;
 import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.SendFailedException;
 import jakarta.mail.internet.*;
 import jakarta.transaction.Transactional;
 import lombok.SneakyThrows;
@@ -128,7 +126,7 @@ public class UserService extends AbstractService {
     }
 
     @Transactional
-    public UserWithoutPassDTO updateProfile(UpdateProfileDTO dto, int userId) {
+    public UserWithoutPassDTO updateProfile(UpdateProfileDTO dto, int userId) {//
         User u = getUserById(userId);
         u.setFirstName(dto.getFirstName());
         u.setLastName(dto.getLastName());

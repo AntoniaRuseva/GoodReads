@@ -30,7 +30,7 @@ public class ShelfController extends AbstractController {
     }
 
     @PutMapping("/shelves/{id}")
-    public ShelfWithoutOwnerAndBooksDTO update(@PathVariable("id") int id, @RequestBody CreateShelfDTO createShelfDTO, HttpSession session) {
+    public ShelfWithoutOwnerAndBooksDTO update(@PathVariable("id") int id,@Valid @RequestBody CreateShelfDTO createShelfDTO, HttpSession session) {
         int userId = getLoggedId(session);
         return shelfService.update(id, userId, createShelfDTO);
     }

@@ -13,7 +13,6 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class BooksCharacteristicDTO {
-
     private String authorName;
     private List<Category> categories;
     private LocalDate releasedDate;

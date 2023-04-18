@@ -5,6 +5,7 @@ import com.it_talends_goodreads.goodreads.model.DTOs.CommentWithoutOwnerDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.CreateCommentDTO;
 import com.it_talends_goodreads.goodreads.service.CommentService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,13 +18,13 @@ public class CommentController extends AbstractController {
     private CommentService commentService;
 
     @PostMapping("/comments")
-    public CommentWithoutOwnerDTO create(@RequestBody CreateCommentDTO createCommentDTO, HttpSession session) {
+    public CommentWithoutOwnerDTO create(@Valid @RequestBody CreateCommentDTO createCommentDTO, HttpSession session) {
         int userId = getLoggedId(session);
         return commentService.create(createCommentDTO, userId);
     }
 
     @PutMapping("/comments/{id}")
-    public CommentWithoutOwnerDTO update(@PathVariable("id") int id, @RequestBody CommentContentDTO commentContentDTO, HttpSession session) {
+    public CommentWithoutOwnerDTO update(@PathVariable("id") int id,@Valid @RequestBody CommentContentDTO commentContentDTO, HttpSession session) {
         int userId = getLoggedId(session);
         return commentService.update(commentContentDTO, userId, id);
     }

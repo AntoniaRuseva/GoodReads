@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import java.util.stream.Collectors;
 
@@ -31,11 +30,7 @@ public class BookService extends AbstractService {
     private BooksShelvesRepository booksShelvesRepository;
 
     public BookDetailedInfoDTO getBookById(int id) {
-        Optional<Book> optional = bookRepository.findById(id);
-        if (optional.isEmpty()) {
-            throw new NotFoundException("No such book");
-        }
-        Book book = optional.get();
+        Book book = bookRepository.findById(id).orElseThrow(() -> new NotFoundException("\"No such book\""));
         return BookDetailedInfoDTO
                 .builder()
                 .title(book.getTitle())
@@ -75,22 +70,18 @@ public class BookService extends AbstractService {
     @Transactional
     public BookRatingDTO rate(int bookId, BookRateDTO bookRateDTO, int userId) {
 
-        Optional<Book> book = bookRepository.findById(bookId);
-        if (book.isEmpty()) {
-            throw new NotFoundException("No such book");
-        }
-        Optional<User> optional = userRepository.findById(userId);
-        User user = optional.get();
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new NotFoundException("No such book"));
+        User user = getUserById(userId);
         if (bookRepository.findByRateByd(user).isPresent()) {
             throw new UnauthorizedException("you have already rated this book");
         }
-        double curRating = book.get().getRating();
-        int curRateCounter = book.get().getRateCounter();
+        double curRating = book.getRating();
+        int curRateCounter = book.getRateCounter();
         double newRating = (curRating * curRateCounter + bookRateDTO.getRating()) / (curRateCounter + 1);
 
-        book.get().setRating(newRating);
-        book.get().setRateCounter(curRateCounter + 1);
-        bookRepository.save(book.get());
+        book.setRating(newRating);
+        book.setRateCounter(curRateCounter + 1);
+        bookRepository.save(book);
 
         return BookRatingDTO
                 .builder()
@@ -101,7 +92,6 @@ public class BookService extends AbstractService {
     public List<BookCommonInfoDTO> getBooksByFilters(BooksCharacteristicDTO booksCharacteristicDTO) {
         JPAQueryFactory query = new JPAQueryFactory(entityManager);
         QBook book = QBook.book;
-
         List<Book> b = new ArrayList<>();
         if (booksCharacteristicDTO.getAuthorName() != null) {
             b = query.selectFrom(book).where(book.author.name.eq(booksCharacteristicDTO.getAuthorName())).fetch();
@@ -113,7 +103,6 @@ public class BookService extends AbstractService {
                 b = query.selectFrom(book).where(book.categories.contains(booksCharacteristicDTO.getCategories().get(i))).fetch();
             }
         }
-
         if (booksCharacteristicDTO.getReleasedDate() != null) {
             b = query.selectFrom(book).where(book.releasedDate.after(booksCharacteristicDTO.getReleasedDate())).fetch();
         }
