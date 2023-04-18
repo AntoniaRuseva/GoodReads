@@ -30,18 +30,15 @@ public class ReviewService extends AbstractService {
     @Transactional
     public ReturnReviewDTO createReview(CreateReviewDTO dto, int userId, int bookId) {
         User u = getUserById(userId);
-        Optional<Book> existBook = bookRepository.findById(bookId);
-        if (existBook.isEmpty()) {
-            throw new BadRequestException("Book doesn't exist.");
-        }
+        Book existBook = bookRepository.findById(bookId).orElseThrow(()->new BadRequestException("Book doesn't exist."));
         Review review = new Review();
-        review.setBook(existBook.get());
+        review.setBook(existBook);
         review.setWriter(u);
         review.setContent(dto.getContent());
         review.setDate(LocalDate.now());
         reviewRepository.save(review);
         ReturnReviewDTO returnReviewDTO = mapper.map(review, ReturnReviewDTO.class);
-        returnReviewDTO.setBookInfo(mapper.map(existBook.get(), BookCommonInfoDTO.class));
+        returnReviewDTO.setBookInfo(mapper.map(existBook, BookCommonInfoDTO.class));
         return returnReviewDTO;
     }
     @Transactional
@@ -55,7 +52,7 @@ public class ReviewService extends AbstractService {
     @Transactional
     public ReturnReviewDTO updateReview(int id, int userId, CreateReviewDTO dto) {
         Review rev = checkIfReviewExists(id);
-        if (authorized(id, rev)) {
+        if (authorized(userId, rev)) {
             rev.setContent(dto.getContent());
             reviewRepository.save(rev);
         }
@@ -66,19 +63,18 @@ public class ReviewService extends AbstractService {
 
     public List<ReturnReviewWithoutBookDTO> getAllReviews(int id) {
         List<Review> list = reviewRepository.getAllByBookId(id);
-        List<ReturnReviewWithoutBookDTO> returnList =
-                list.stream().map(r -> mapper.map(r, ReturnReviewWithoutBookDTO.class))
-                        .collect(Collectors.toList());
-        return returnList;
+        return list.stream()
+                .map(r -> mapper.map(r, ReturnReviewWithoutBookDTO.class))
+                .collect(Collectors.toList());
     }
     @Transactional
     public ReturnReviewWithoutBookDTO likeReview(int id, int userId) {
         Review rev = checkIfReviewExists(id);
-        Optional<User> u = userRepository.findById(userId);
-        if (rev.getLikedBy().contains(u.get())) {
-            rev.getLikedBy().remove(u.get());
+        User u = userRepository.findById(userId).orElseThrow(()->new NotFoundException("User not found."));
+        if (rev.getLikedBy().contains(u)) {
+            rev.getLikedBy().remove(u);
         } else {
-            rev.getLikedBy().add(u.get());
+            rev.getLikedBy().add(u);
         }
         reviewRepository.save(rev);
         ReturnReviewWithoutBookDTO returnInst = mapper.map(rev, ReturnReviewWithoutBookDTO.class);
@@ -87,11 +83,8 @@ public class ReviewService extends AbstractService {
     }
 
     private Review checkIfReviewExists(int id) {
-        Optional<Review> rev = reviewRepository.findById(id);
-        if (rev.isEmpty()) {
-            throw new NotFoundException("This review doesn't exist.");
-        }
-        return rev.get();
+        return reviewRepository.findById(id)
+                .orElseThrow(()->new NotFoundException("This review doesn't exist."));
     }
 
     private boolean authorized(int userId, Review rev) {

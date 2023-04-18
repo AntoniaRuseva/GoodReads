@@ -81,10 +81,10 @@ public class UserService extends AbstractService {
         if (!updateData.getNewPass().equals(updateData.getConfirmNewPass())) {
             throw new BadRequestException("Mismatching password");
         }
-        Optional<User> u = userRepository.findById(userId);
+        User u = getUserById(userId);
 
-        u.get().setPassword(encoder.encode(updateData.getNewPass()));
-        userRepository.save(u.get());
+        u.setPassword(encoder.encode(updateData.getNewPass()));
+        userRepository.save(u);
         return mapper.map(u, UserWithoutPassDTO.class);
     }
 
@@ -104,7 +104,7 @@ public class UserService extends AbstractService {
 
     @Transactional
     public int follow(int followerId, int followedId) {
-        if(followedId==followerId){
+        if (followedId == followerId) {
             throw new UnauthorizedException("You cannot follow yourself.");
         }
         User follower = getUserById(followerId);
@@ -118,7 +118,7 @@ public class UserService extends AbstractService {
     public void unfollow(int unfollowId, int userId) {
         User user = getUserById(userId);
         User unfollowed = getUserById(unfollowId);
-        if(!unfollowed.getFollowed().contains(user)){
+        if (!unfollowed.getFollowed().contains(user)) {
             throw new NotFoundException("You are not following this user.");
         }
         unfollowed.getFollowers().remove(user);
@@ -144,16 +144,13 @@ public class UserService extends AbstractService {
     }
 
     public Set<UserWithoutPassDTO> getUserByBook(int bookId) {
-        Optional<Book> book = bookRepository.findById(bookId);
-        if (book.isEmpty()) {
-            throw new BadRequestException("Book doesn't exist.");
-        }
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new BadRequestException("Book doesn't exist."));
         List<BooksShelves> booksShelves = booksShelvesRepository.getByBook_Id(bookId);
         Set<UserWithoutPassDTO> returnUsers = new HashSet<>();
         for (BooksShelves b : booksShelves) {
             returnUsers.add(mapper.map(b.getShelf().getUser(), UserWithoutPassDTO.class));
         }
-        if(returnUsers.isEmpty()){
+        if (returnUsers.isEmpty()) {
             throw new NotFoundException("No users reading this book");
         }
         return returnUsers;
@@ -161,7 +158,7 @@ public class UserService extends AbstractService {
 
     @Transactional
     public int addFriendRequest(int requesterId, int receiverId) {
-        if(requesterId==receiverId){
+        if (requesterId == receiverId) {
             throw new UnauthorizedException("You cannot request that friendship.");
         }
         User requester = getUserById(requesterId);
@@ -190,14 +187,8 @@ public class UserService extends AbstractService {
 
     @Transactional
     public String acceptFriendRequest(int requesterId, int receiverId) {
-
-        Optional<User> requesterR = userRepository.findById(requesterId);
-        Optional<User> receiverR = userRepository.findById(receiverId);
-        if(requesterR.isEmpty() || receiverR.isEmpty()){
-            throw new NotFoundException("User not found.");
-        }
-        User requester=requesterR.get();
-        User receiver =receiverR.get();
+        User requester = getUserById(requesterId);
+        User receiver = getUserById(receiverId);
 
         FriendRequest friendRequest = checkRequestExists(requester, receiver);
 
@@ -210,6 +201,7 @@ public class UserService extends AbstractService {
         receiver.getFriends().add(requester);
 
         receiver.getUsersFriends().add(requester);
+        requester.getUsersFriends().add(receiver);
         friendRequest.setAccepted(true);
 
         friendRequestRepository.save(friendRequest);
@@ -220,47 +212,32 @@ public class UserService extends AbstractService {
 
     @Transactional
     public String rejectFriendRequest(int userId, int friendId) {
+        User friend = getUserById(friendId);
+        User user = getUserById(userId);
 
-        Optional<User> friend = userRepository.findById(friendId);
-        Optional<User> user = userRepository.findById(userId);
-        if(friend.isEmpty() || user.isEmpty()){
-            throw new NotFoundException("User not found.");
-        }
-        FriendRequest friendRequest = checkRequestExists(friend.get(), user.get());
-
+        FriendRequest friendRequest = checkRequestExists(friend, user);
         if (friendRequest.isRejected() || friendRequest.isAccepted()) {
             throw new BadRequestException("This user doesn't want to be your friend"
                     + ((friendRequest.isRejected()) ? " rejected" : "accepted"));
         }
-
         friendRequest.setRejected(true);
         friendRequestRepository.save(friendRequest);
-
         return "You have rejected " + friendId + "'s friend request.";
     }
 
     @Transactional
     public String removeFriend(int userId, int friendId) {
-
-        Optional<User> userU = userRepository.findById(userId);
-        Optional<User> friendF = userRepository.findById(friendId);
-        if(userU.isEmpty() || friendF.isEmpty()){
-            throw new NotFoundException("User not found.");
-        }
-        User user = userU.get();
-        User friend = friendF.get();
-
+        User user = getUserById(userId);
+        User friend = getUserById(friendId);
         if (!user.getFriends().contains(friend)) {
             throw new NotFoundException("User with id: " + friendId + " is not your friend.");
         }
-
         user.getFriends().remove(friend);
         friend.getFriends().remove(user);
-        Optional<FriendRequest> friendRequest = friendRequestRepository.findByRequesterAndReceiver(user, friend);
-        if (friendRequest.isEmpty()) {
-            throw new NotFoundException("Request is already deleted.");
-        }
-        friendRequestRepository.delete(friendRequest.get());
+        FriendRequest friendRequest = friendRequestRepository.findByRequesterAndReceiver(user, friend)
+                .orElseThrow(() -> new NotFoundException("Request is already deleted."));
+
+        friendRequestRepository.delete(friendRequest);
         userRepository.save(user);
         userRepository.save(friend);
         return "You have removed user " + friendId + " successfully";
@@ -278,34 +255,27 @@ public class UserService extends AbstractService {
     }
 
     private FriendRequest checkRequestExists(User requester, User receiver) {
-        Optional<FriendRequest> friendRequest = friendRequestRepository.findByRequesterAndReceiver(requester, receiver);
-        if (friendRequest.isEmpty()) {
-            throw new BadRequestException(
-                    "Request with requester " + requester.getId() + ", and receiver " + receiver.getId() + " doesn't exist");
-        }
-        return friendRequest.get();
+        return friendRequestRepository.findByRequesterAndReceiver(requester, receiver)
+                .orElseThrow(() -> new BadRequestException(
+                        "Request with requester " + requester.getId()
+                                + ", and receiver " + receiver.getId() + " doesn't exist"));
     }
 
-
     @SneakyThrows
-    public void sendNewTemporaryPassword(EmailDTO email) {
+    public MimeMessage sendNewTemporaryPassword(EmailDTO email) {
         try {
-            Optional<User> u = userRepository.findByEmail(email.getEmail());
-            if (u.isEmpty()) {
-                throw new NotFoundException("No user with this email");
-            }
-            User user = u.get();
+            User u = userRepository.findByEmail(email.getEmail())
+                    .orElseThrow(() -> new NotFoundException("No user with this email"));
             String tempPassword = generateRandomPassword(new Random().nextInt(8, 16));
-            user.setPassword(new BCryptPasswordEncoder().encode(tempPassword));
-            userRepository.save(user);
+            u.setPassword(new BCryptPasswordEncoder().encode(tempPassword));
+            userRepository.save(u);
 
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-
             mimeMessage.setFrom(new InternetAddress("goodreadsITTalents@gmail.com"));
             mimeMessage.setRecipient(Message.RecipientType.TO, new InternetAddress(email.getEmail()));
             mimeMessage.setSubject("New Password");
             mimeMessage.setText("Your new password is " + tempPassword);
-            javaMailSender.send(mimeMessage);
+            return mimeMessage;
         } catch (RuntimeException e) {
             throw new NotFoundException("Problem with sending the email");
         }

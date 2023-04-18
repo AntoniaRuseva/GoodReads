@@ -25,9 +25,9 @@ public class ReviewController extends AbstractController{
         return reviewService.deleteReview(id,userId);
     }
     @PutMapping("/reviews/{id}")
-    public ReturnReviewDTO updateReview(@PathVariable("id")int id,@Valid @RequestBody CreateReviewDTO dto, HttpSession s){
-        getLoggedId(s);
-        return reviewService.updateReview(id,dto);
+    public ReturnReviewDTO updateReview(@PathVariable("id")int id,@RequestBody CreateReviewDTO dto, HttpSession s){
+        int userId = getLoggedId(s);
+        return reviewService.updateReview(id,userId,dto);
     }
     @GetMapping("/reviews/books/{id}")
     public List<ReturnReviewWithoutBookDTO> getAllReviewsForBook(@PathVariable("id")int id){
