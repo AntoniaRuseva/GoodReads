@@ -9,6 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateChallengeDTO {
+    @NonNull
     @Min(value = 0, message = "The number must be positive")
     @Max(value = 1000, message = "This is too many books")
     private int number;

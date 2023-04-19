@@ -4,6 +4,7 @@ import com.it_talends_goodreads.goodreads.model.DTOs.ReturnReviewDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.ReturnReviewWithoutBookDTO;
 import com.it_talends_goodreads.goodreads.service.ReviewService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +15,7 @@ public class ReviewController extends AbstractController{
     @Autowired
     private ReviewService reviewService;
     @PostMapping("/reviews/books/{id}")
-    public ReturnReviewDTO createReview(@PathVariable int id, @RequestBody CreateReviewDTO dto, HttpSession s){
+    public ReturnReviewDTO createReview(@PathVariable int id, @Valid @RequestBody CreateReviewDTO dto, HttpSession s){
         int userId=getLoggedId(s);
        return reviewService.createReview(dto,userId,id);
     }
@@ -25,7 +26,7 @@ public class ReviewController extends AbstractController{
     }
     @PutMapping("/reviews/{id}")
     public ReturnReviewDTO updateReview(@PathVariable("id")int id,@RequestBody CreateReviewDTO dto, HttpSession s){
-        int userId=getLoggedId(s);
+        int userId = getLoggedId(s);
         return reviewService.updateReview(id,userId,dto);
     }
     @GetMapping("/reviews/books/{id}")

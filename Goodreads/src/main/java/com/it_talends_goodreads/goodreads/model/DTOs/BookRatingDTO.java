@@ -8,6 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class BookRatingDTO {
+
     private String rating;
     private double counter;
 }

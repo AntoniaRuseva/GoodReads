@@ -8,6 +8,8 @@ import org.hibernate.validator.constraints.Length;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CommentContentDTO {
-    @Length(max=5000)
+
+    @NonNull
+    @Length(max = 2000)
     private String content;
 }

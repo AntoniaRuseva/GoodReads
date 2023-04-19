@@ -49,7 +49,6 @@ public class ChallengeService extends AbstractService {
         if (authorized(userId, challenge)) {
             challenge.setNumber(setChallengeDTO.getNumber());
             challengeRepository.save(challenge);
-
         }
         return mapper.map(challenge, ChallengeWithoutOwnerDTO.class);
     }
@@ -80,11 +79,7 @@ public class ChallengeService extends AbstractService {
     }
 
     private Challenge exists(int id) {
-        Optional<Challenge> optional = challengeRepository.findById(id);
-        if (optional.isEmpty()) {
-            throw new BadRequestException("No such challenge");
-        }
-        return optional.get();
+        return challengeRepository.findById(id).orElseThrow(() -> new BadRequestException("No such challenge"));
     }
 
     private boolean authorized(int userId, Challenge challenge) {
@@ -97,23 +92,19 @@ public class ChallengeService extends AbstractService {
     @Transactional
     public ChallengeProgressDTO getProgressByChallenge(int userId, int friendId, int challengeId) {
         User user = getUserById(userId);
+        User friend = getUserById(friendId);
         if(userId != friendId) {
-            Optional<Friend> optionalFriend = friendRepository.findByFriend_IdAndUser(friendId, user);
-            if (optionalFriend.isEmpty()) {
+            if(!user.getFriends().contains(friend)) {
                 throw new UnauthorizedException("You can see only yours and your friends challenges.");
             }
         }
         User userToCheckProgress = getUserById(friendId);
-        Optional<Challenge> optionalChallenge = challengeRepository.findById(challengeId);
-        if (optionalChallenge.isEmpty()) {
-            throw new NotFoundException("No such challenge");
-        }
-        Challenge challenge = optionalChallenge.get();
+        Challenge challenge = challengeRepository
+                .findById(challengeId)
+                .orElseThrow(() -> new  NotFoundException("No such challenge"));
 
-        Optional<Challenge> challengeByUser = challengeRepository.getByUser(userToCheckProgress);
-        if (challengeByUser.isEmpty()) {
-            throw new BadRequestException("This challenge doesn't belong to this user");
-        }
+        challengeRepository.getByUser(userToCheckProgress)
+                .orElseThrow(() -> new BadRequestException("This challenge doesn't belong to this user"));
 
         int challengeTarget = challenge.getNumber();
         int challengeYear = challenge.getDateAdded().getYear();

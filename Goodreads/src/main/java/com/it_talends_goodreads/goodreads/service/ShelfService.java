@@ -49,11 +49,8 @@ public class ShelfService extends AbstractService {
     }
 
     public ShelfWithBookInfoDTO getShelfById(int id) {
-        Optional<Shelf> optional = shelfRepository.findById(id);
-        if (optional.isEmpty()) {
-            throw new BadRequestException("No such shelf");
-        }
-        Shelf shelf = optional.get();
+        Shelf shelf = shelfRepository.findById(id).orElseThrow(() -> new BadRequestException("No such shelf"));
+
         List<Book> books = shelf
                 .getBooksShelves()
                 .stream()
@@ -90,11 +87,7 @@ public class ShelfService extends AbstractService {
     }
 
     private Shelf exists(int id) {
-        Optional<Shelf> optional = shelfRepository.findById(id);
-        if (optional.isEmpty()) {
-            throw new BadRequestException("No such shelf");
-        }
-        return optional.get();
+        return shelfRepository.findById(id).orElseThrow(() -> new BadRequestException("No such shelf"));
     }
 
     private boolean authorized(int userId, Shelf shelf) {
@@ -107,12 +100,10 @@ public class ShelfService extends AbstractService {
     @Transactional
     public ShelfWithBookInfoDTO addBook(int shelfId, int bookId, int userId) {
         Shelf shelf = exists(shelfId);
-        Optional<Book> book = bookRepository.findById(bookId);
-        if (book.isEmpty()) {
-            throw new NotFoundException("No such book");
-        }
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new NotFoundException("No such book"));
+
         if (authorized(userId, shelf)) {
-            BooksShelves booksShelves = BooksShelves.builder().book(book.get()).shelf(shelf).dateAdded(LocalDate.now()).build();
+            BooksShelves booksShelves = BooksShelves.builder().book(book).shelf(shelf).dateAdded(LocalDate.now()).build();
             booksShelvesRepository.save(booksShelves);
         }
         List<Book> books = shelf.getBooksShelves().stream().map(BooksShelves::getBook).toList();
@@ -130,16 +121,11 @@ public class ShelfService extends AbstractService {
     @Transactional
     public ShelfWithBookInfoDTO removeBook(int shelfId, int bookId, int userId) {
         Shelf shelf = exists(shelfId);
-        Optional<Book> book = bookRepository.findById(bookId);
-        if (book.isEmpty()) {
-            throw new NotFoundException("No such book");
-        }
-        Optional<BooksShelves> bookShelve = booksShelvesRepository.findBooksShelvesByBookAndShelf(book.get(), shelf);
-        if (bookShelve.isEmpty()) {
-            throw new NotFoundException("No such combination book-shelf");
-        }
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new NotFoundException("No such book"));
+        BooksShelves bookShelve = booksShelvesRepository
+                .findBooksShelvesByBookAndShelf(book, shelf).orElseThrow(() ->new NotFoundException("No such combination book-shelf"));
         if (authorized(userId, shelf)) {
-            booksShelvesRepository.delete(bookShelve.get());
+            booksShelvesRepository.delete(bookShelve);
         }
         List<Book> books = shelf.getBooksShelves().stream().map(BooksShelves::getBook).toList();
         return ShelfWithBookInfoDTO

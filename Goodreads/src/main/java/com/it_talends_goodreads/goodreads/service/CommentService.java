@@ -33,10 +33,8 @@ public class CommentService extends AbstractService {
         User user = getUserById(userId);
         Comment comment;
 
-        Optional<Review> optional = reviewRepository.findById(createCommentDTO.getReviewId());
-        if (optional.isEmpty()) {
-            throw new NotFoundException("No such review");
-        }
+        Review review = reviewRepository.findById(createCommentDTO.getReviewId()).orElseThrow(() -> new NotFoundException("No such review"));
+
         if (createCommentDTO.getParentId() != 0) {
             Optional<Comment> optionalParent = commentRepository.findById(createCommentDTO.getParentId());
             if (optionalParent.isEmpty()) {
@@ -46,7 +44,7 @@ public class CommentService extends AbstractService {
             comment = Comment
                     .builder()
                     .writer(user)
-                    .review(optional.get())
+                    .review(review)
                     .parent(parent)
                     .content(createCommentDTO.getContent())
                     .build();
@@ -54,7 +52,7 @@ public class CommentService extends AbstractService {
             comment = Comment
                     .builder()
                     .writer(user)
-                    .review(optional.get())
+                    .review(review)
                     .parent(null)
                     .content(createCommentDTO.getContent())
                     .build();
@@ -88,11 +86,7 @@ public class CommentService extends AbstractService {
     }
 
     private Comment exists(int id) {
-        Optional<Comment> optional = commentRepository.findById(id);
-        if (optional.isEmpty()) {
-            throw new BadRequestException("No such comment");
-        }
-        return optional.get();
+        return commentRepository.findById(id).orElseThrow(() -> new BadRequestException("No such comment"));
     }
 
     private boolean authorized(int userId, Comment comment) {
@@ -110,11 +104,7 @@ public class CommentService extends AbstractService {
     }
 
     public List<CommentWithoutOwnerDTO> getAllByReview(int id) {
-        Optional<Review> optional = reviewRepository.findById(id);
-        if(optional.isEmpty()){
-            throw new NotFoundException("No such review");
-        }
-        Review review = optional.get();
+        Review review = reviewRepository.findById(id).orElseThrow(() -> new NotFoundException("No such review"));
         List<Comment> comments = commentRepository.findAllByReview(review);
         return comments
                 .stream()

@@ -25,7 +25,7 @@ public class ChallengeController extends AbstractController {
     }
 
     @PutMapping("/challenges/{id}")
-    public ChallengeWithoutOwnerDTO update(@RequestBody CreateChallengeDTO setChallengeDTO, @PathVariable int id, HttpSession session) {
+    public ChallengeWithoutOwnerDTO update(@Valid @RequestBody CreateChallengeDTO setChallengeDTO, @PathVariable int id, HttpSession session) {
         int userId = getLoggedId(session);
         return challengeService.updateChallenge(id
                 , setChallengeDTO, userId);

@@ -147,7 +147,7 @@ public class UserService extends AbstractService {
     }
 
     @Transactional
-    public UserWithoutPassDTO updateProfile(UpdateProfileDTO dto, int userId) {
+    public UserWithoutPassDTO updateProfile(UpdateProfileDTO dto, int userId) {//
         User u = getUserById(userId);
         u.setFirstName(dto.getFirstName());
         u.setLastName(dto.getLastName());

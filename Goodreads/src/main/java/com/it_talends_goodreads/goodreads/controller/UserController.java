@@ -87,7 +87,7 @@ public class UserController extends AbstractController {
     }
 
     @PutMapping("/users/profile")
-    public UserWithoutPassDTO updateProfile(@RequestBody UpdateProfileDTO dto, HttpSession s) {
+    public UserWithoutPassDTO updateProfile(@Valid @RequestBody UpdateProfileDTO dto, HttpSession s) {
         int userId = getLoggedId(s);
         return userService.updateProfile(dto, userId);
     }
