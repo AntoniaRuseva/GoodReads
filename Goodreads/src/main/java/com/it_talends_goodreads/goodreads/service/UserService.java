@@ -117,7 +117,6 @@ public class UserService extends AbstractService {
         User user = getUserById(userId);
         shelfRepository.deleteAllByUser(user);
         userRepository.delete(user);
-
         logger.info(String.format("User with id %d deleted profile successfully.", userId));
     }
 

@@ -10,7 +10,8 @@ import com.it_talends_goodreads.goodreads.model.entities.User;
 import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
 import com.it_talends_goodreads.goodreads.model.exceptions.NotFoundException;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.it_talends_goodreads.goodreads.model.repositories.CommentRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ public class CommentService extends AbstractService {
     private ReviewRepository reviewRepository;
     @Autowired
     private CommentRepository commentRepository;
+    private static final Logger logger = LoggerFactory.getLogger(CommentService.class);
 
     @Transactional
     public CommentWithoutOwnerDTO create(CreateCommentDTO createCommentDTO, int userId) {
@@ -58,7 +60,7 @@ public class CommentService extends AbstractService {
                     .build();
         }
         commentRepository.save(comment);
-        return CommentWithoutOwnerDTO
+        CommentWithoutOwnerDTO result =  CommentWithoutOwnerDTO
                 .builder()
                 .id(comment.getId())
                 .parentId(0)
@@ -66,6 +68,8 @@ public class CommentService extends AbstractService {
                 .reviewId(comment.getReview().getId())
                 .content(comment.getContent())
                 .build();
+        logger.info(String.format("User with id %d wrote comment with id", userId, result.getId()));
+        return result;
     }
 
     @Transactional
@@ -75,6 +79,7 @@ public class CommentService extends AbstractService {
         if (authorized(userId, comment)) {
             comment.setContent(commentContentDTO.getContent());
             commentRepository.save(comment);
+            logger.info(String.format("User with id %d updated comment with id %d", userId,commentId));
         }
         return CommentWithoutOwnerDTO
                 .builder()
@@ -91,6 +96,8 @@ public class CommentService extends AbstractService {
 
     private boolean authorized(int userId, Comment comment) {
         if (userId != comment.getWriter().getId()) {
+            logger.warn(String.format("User with id %d is trying to update comment with id %d that does not belong to him",
+                    userId,comment.getId()));
             throw new UnauthorizedException("You are not allowed to make changes");
         }
         return true;
@@ -99,6 +106,8 @@ public class CommentService extends AbstractService {
     public void delete(int id, int userId) {
         Comment comment = exists(id);
         if (authorized(userId, comment)) {
+            logger.info(String.format("User with id %d deleted comment with id %d",
+                    userId,id));
             commentRepository.deleteById(id);
         }
     }

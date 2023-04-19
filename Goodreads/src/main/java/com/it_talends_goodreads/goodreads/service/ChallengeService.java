@@ -6,15 +6,15 @@ import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
 import com.it_talends_goodreads.goodreads.model.exceptions.NotFoundException;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
 import com.it_talends_goodreads.goodreads.model.repositories.ChallengeRepository;
-import com.it_talends_goodreads.goodreads.model.repositories.FriendRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.ShelfRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,14 +22,15 @@ public class ChallengeService extends AbstractService {
     @Autowired
     private ChallengeRepository challengeRepository;
     @Autowired
-    private FriendRepository friendRepository;
-    @Autowired
     private ShelfRepository shelfRepository;
+    private static final Logger logger = LoggerFactory.getLogger(ChallengeService.class);
 
     @Transactional
     public ChallengeWithoutOwnerDTO createChallenge(CreateChallengeDTO setChallengeDTO, int userId) {
         User user = getUserById(userId);
         if (challengeRepository.countByUserAndYear(userId) != 0) {
+            logger.info(String.format("User with id  %d is trying to make a new challenge, but there is already one." +
+                    " First has to erase the available challenge", userId));
             throw new BadRequestException("You already have challenge for this year.");
         }
         Challenge challenge = Challenge
@@ -39,6 +40,7 @@ public class ChallengeService extends AbstractService {
                 .dateAdded(LocalDate.now())
                 .build();
         challengeRepository.save(challenge);
+        logger.info(String.format("User with id  %d created a new challenge with %d goal", userId, setChallengeDTO.getNumber()));
         return mapper.map(challenge, ChallengeWithoutOwnerDTO.class);
 
     }
@@ -48,16 +50,19 @@ public class ChallengeService extends AbstractService {
         Challenge challenge = exists(challengeId);
         if (authorized(userId, challenge)) {
             challenge.setNumber(setChallengeDTO.getNumber());
+            logger.info(String.format("User with id %d updated challenge with id %d. The challenge goal is %d now.",
+                    userId, challengeId, setChallengeDTO.getNumber()));
             challengeRepository.save(challenge);
         }
         return mapper.map(challenge, ChallengeWithoutOwnerDTO.class);
     }
 
     @Transactional
-    public void deleteChallenge(int id, int userId) {
-        Challenge challenge = exists(id);
+    public void deleteChallenge(int challengeId, int userId) {
+        Challenge challenge = exists(challengeId);
         if (authorized(userId, challenge)) {
-            challengeRepository.deleteById(id);
+            logger.info(String.format("User with id %d deleted challenge with id %d.", userId, challengeId));
+            challengeRepository.deleteById(challengeId);
         }
     }
 
@@ -75,6 +80,8 @@ public class ChallengeService extends AbstractService {
         if (list.isEmpty()) {
             throw new NotFoundException("You don't have challenges");
         }
+        logger.info(String.format("User with id %d checks all his/her challenges. The result is %s",
+                userId, list.stream().map(Object::toString)));
         return list;
     }
 
@@ -93,35 +100,31 @@ public class ChallengeService extends AbstractService {
     public ChallengeProgressDTO getProgressByChallenge(int userId, int friendId, int challengeId) {
         User user = getUserById(userId);
         User friend = getUserById(friendId);
-        if(userId != friendId) {
-            if(!user.getFriends().contains(friend)) {
+        if (userId != friendId) {
+            if (!user.getFriends().contains(friend)) {
+                logger.info(String.format("User with id %d is trying to check the challenge progress to user with id %d" +
+                                " without being his friend.",
+                        userId, friendId));
                 throw new UnauthorizedException("You can see only yours and your friends challenges.");
             }
         }
         User userToCheckProgress = getUserById(friendId);
         Challenge challenge = challengeRepository
                 .findById(challengeId)
-                .orElseThrow(() -> new  NotFoundException("No such challenge"));
+                .orElseThrow(() -> new NotFoundException("No such challenge"));
 
         challengeRepository.getByUser(userToCheckProgress)
                 .orElseThrow(() -> new BadRequestException("This challenge doesn't belong to this user"));
 
         int challengeTarget = challenge.getNumber();
         int challengeYear = challenge.getDateAdded().getYear();
+        Shelf shelf = shelfRepository
+                .findByUserAndName(userToCheckProgress, "Read")
+                .orElseThrow(() -> new NotFoundException("You have deleted this shelf"));
 
-        Optional<Shelf> optionalShelf = shelfRepository.findByUserAndName(userToCheckProgress, "Read");
-        if(optionalShelf.isEmpty()){
-            return ChallengeProgressDTO
-                    .builder()
-                    .userName(userToCheckProgress.getUserName())
-                    .currentReadBook(0)
-                    .target(challengeTarget)
-                    .challengeYear(challengeYear).build();
-        }
-        Shelf shelf = optionalShelf.get();
         List<Book> readBooks = shelf.getBooksShelves().stream().map(BooksShelves::getBook).toList();
 
-        return ChallengeProgressDTO
+        ChallengeProgressDTO goalDTO = ChallengeProgressDTO
                 .builder()
                 .challengeId(challengeId)
                 .userName(userToCheckProgress.getUserName())
@@ -129,12 +132,15 @@ public class ChallengeService extends AbstractService {
                 .target(challengeTarget)
                 .challengeYear(challengeYear)
                 .readBooksList(readBooks.stream().map(b -> BookCommonInfoDTO
-                                        .builder()
-                                        .id(b.getId())
-                                        .title(b.getTitle())
-                                        .authorName(b.getAuthor().getName())
-                                        .build())
-                                .collect(Collectors.toList()))
+                                .builder()
+                                .id(b.getId())
+                                .title(b.getTitle())
+                                .authorName(b.getAuthor().getName())
+                                .build())
+                        .collect(Collectors.toList()))
                 .build();
+        logger.info(String.format("User with id %d checked the challenge progress to user with id %d. The result is %s",
+                userId, friendId, goalDTO.toString()));
+        return goalDTO;
     }
 }

@@ -8,6 +8,8 @@ import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException
 import com.it_talends_goodreads.goodreads.model.repositories.BooksShelvesRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.ShelfRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,7 @@ public class ShelfService extends AbstractService {
     private ShelfRepository shelfRepository;
     @Autowired
     private BooksShelvesRepository booksShelvesRepository;
+    private static final Logger logger = LoggerFactory.getLogger(CommentService.class);
 
     @Transactional
     public ShelfWithoutOwnerAndBooksDTO createShelf(CreateShelfDTO createShelfDTO, int userId) {
@@ -32,6 +35,7 @@ public class ShelfService extends AbstractService {
         shelf.setUser(user);
         shelf.setName(createShelfDTO.getName());
         shelfRepository.save(shelf);
+        logger.info(String.format("User with id %d created shelf with id %d", userId, shelf.getId()));
         return mapper.map(shelf, ShelfWithoutOwnerAndBooksDTO.class);
     }
 
@@ -75,6 +79,7 @@ public class ShelfService extends AbstractService {
             shelf.setName(createShelfDTO.getName());
             shelfRepository.save(shelf);
         }
+        logger.info(String.format("User with id %d updated shelf with id %d", userId, shelf.getId()));
         return mapper.map(shelf, ShelfWithoutOwnerAndBooksDTO.class);
     }
 
@@ -82,16 +87,20 @@ public class ShelfService extends AbstractService {
     public void delete(int id, int userId) {
         Shelf shelf = exists(id);
         if (authorized(userId, shelf)) {
+            shelf.getBooksShelves().removeAll(shelf.getBooksShelves().stream().toList());
+            shelfRepository.save(shelf);
             shelfRepository.deleteById(id);
+            logger.info(String.format("User with id %d deleted shelf with id %d", userId, id));
         }
     }
-
     private Shelf exists(int id) {
         return shelfRepository.findById(id).orElseThrow(() -> new BadRequestException("No such shelf"));
     }
 
     private boolean authorized(int userId, Shelf shelf) {
         if (userId != shelf.getUser().getId()) {
+            logger.info(String.format("User with id %d is trying to make changes on shelf with id %d, " +
+                    "that doesn't belong to him", userId, shelf.getId()));
             throw new UnauthorizedException("You are not allowed to make changes");
         }
         return true;
@@ -105,6 +114,7 @@ public class ShelfService extends AbstractService {
         if (authorized(userId, shelf)) {
             BooksShelves booksShelves = BooksShelves.builder().book(book).shelf(shelf).dateAdded(LocalDate.now()).build();
             booksShelvesRepository.save(booksShelves);
+            logger.info(String.format("User with id %d added book with id %d to shelf with id %d", userId, bookId, shelfId));
         }
         List<Book> books = shelf.getBooksShelves().stream().map(BooksShelves::getBook).toList();
         return ShelfWithBookInfoDTO
@@ -126,6 +136,7 @@ public class ShelfService extends AbstractService {
                 .findBooksShelvesByBookAndShelf(book, shelf).orElseThrow(() ->new NotFoundException("No such combination book-shelf"));
         if (authorized(userId, shelf)) {
             booksShelvesRepository.delete(bookShelve);
+            logger.info(String.format("User with id %d remove book with id %d to shelf with id %d", userId, bookId, shelfId));
         }
         List<Book> books = shelf.getBooksShelves().stream().map(BooksShelves::getBook).toList();
         return ShelfWithBookInfoDTO

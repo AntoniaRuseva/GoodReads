@@ -8,6 +8,7 @@ import com.it_talends_goodreads.goodreads.model.repositories.BooksShelvesReposit
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import com.it_talends_goodreads.goodreads.model.exceptions.NotFoundException;
 
@@ -17,7 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +31,7 @@ public class BookService extends AbstractService {
     @Autowired
     private BooksShelvesRepository booksShelvesRepository;
 
+    private static final Logger logger = LoggerFactory.getLogger(BookService.class);
     public BookDetailedInfoDTO getBookById(int id) {
         Book book = bookRepository.findById(id).orElseThrow(() -> new NotFoundException("\"No such book\""));
         return BookDetailedInfoDTO
@@ -73,6 +76,7 @@ public class BookService extends AbstractService {
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new NotFoundException("No such book"));
         User user = getUserById(userId);
         if (bookRepository.findByRateByd(user).isPresent()) {
+            logger.info(String.format("User with id  %d can't rate book with id %d, because already did it", userId, bookId, bookRateDTO.getRating()));
             throw new UnauthorizedException("you have already rated this book");
         }
         double curRating = book.getRating();
@@ -82,7 +86,7 @@ public class BookService extends AbstractService {
         book.setRating(newRating);
         book.setRateCounter(curRateCounter + 1);
         bookRepository.save(book);
-
+        logger.info(String.format("User with id  %d rated book with id %d with rate %d", userId, bookId, bookRateDTO.getRating()));
         return BookRatingDTO
                 .builder()
                 .rating(String.format("%.2f", curRating))
