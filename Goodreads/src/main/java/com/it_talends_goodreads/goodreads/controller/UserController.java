@@ -23,8 +23,12 @@ public class UserController extends AbstractController {
     private JavaMailSender javaMailSender;
 
     @PostMapping("/users/login")
-    public UserWithoutPassDTO login(@Valid @RequestBody LoginDTO loginData) {
-       return userService.login(loginData);
+    public UserWithoutPassDTO login(@Valid @RequestBody LoginDTO loginData, HttpSession s) {
+        UserWithoutPassDTO u = userService.login(loginData);
+        s.setAttribute("LOGGED", true);
+        s.setAttribute("LOGGED_ID", u.getId());
+        return u;
+
     }
 
     @PostMapping("/users/logout")
@@ -41,7 +45,7 @@ public class UserController extends AbstractController {
     }
 
     @GetMapping("/users/{id}")
-    public UserWithoutPassDTO getById(@PathVariable int id) {
+    public UserWithFriendRequestsDTO getById(@PathVariable int id) {
         return userService.getById(id);
     }
 
@@ -115,7 +119,7 @@ public class UserController extends AbstractController {
     @PostMapping("/users/friends/{id}/acc")
     public String acceptFriendRequest(@PathVariable("id") int friendId, HttpSession s) {
         int userId = getLoggedId(s);
-        return userService.acceptFriendRequest(userId, friendId);
+        return userService.acceptFriendRequest(friendId,userId);
     }
 
     @PostMapping("/users/friends/{id}/rej")
@@ -138,7 +142,7 @@ public class UserController extends AbstractController {
 
     @PostMapping("/resetPassword")
     public void requestPasswordReset(@RequestBody EmailDTO emailTest) {
-      MimeMessage mimeMessage=userService.sendNewTemporaryPassword(emailTest);
-        new Thread(()->javaMailSender.send(mimeMessage));
+        MimeMessage mimeMessage = userService.sendNewTemporaryPassword(emailTest);
+        new Thread(() -> javaMailSender.send(mimeMessage));
     }
 }

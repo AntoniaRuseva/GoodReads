@@ -9,9 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
+import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
-
+@RestController
 public abstract class AbstractController {
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -43,6 +43,7 @@ public abstract class AbstractController {
     }
 
     private ErrorDTO generateErrorDTO(Exception e, HttpStatus s) {
+        e.printStackTrace();
         ErrorDTO errorDTO = ErrorDTO.builder()
                 .time(LocalDateTime.now())
                 .status(s.value())

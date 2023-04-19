@@ -64,13 +64,7 @@ public class ChallengeService extends AbstractService {
 
     public ChallengeWithOwnerInfoDTO getChallenge(int id) {
         Challenge challenge = exists(id);
-        return ChallengeWithOwnerInfoDTO
-                .builder()
-                .id(id)
-                .number(challenge.getNumber())
-                .dateAdded(challenge.getDateAdded())
-                .ownerUserName(challenge.getUser().getUserName())
-                .build();
+        return mapper.map(challenge,ChallengeWithOwnerInfoDTO.class);
     }
 
     public List<ChallengeWithoutOwnerDTO> getAllMineChallenges(int userId) {

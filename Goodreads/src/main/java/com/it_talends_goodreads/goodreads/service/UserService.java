@@ -17,6 +17,8 @@ import jakarta.mail.Message;
 import jakarta.mail.internet.*;
 import jakarta.transaction.Transactional;
 import lombok.SneakyThrows;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 
 import java.util.*;
+
 import java.util.stream.Collectors;
 
 
@@ -40,21 +43,26 @@ public class UserService extends AbstractService {
     private FriendRequestRepository friendRequestRepository;
     @Autowired
     private JavaMailSender javaMailSender;
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     public UserWithoutPassDTO login(LoginDTO loginData) {
         Optional<User> u = userRepository.findByEmail(loginData.getEmail());
         if (u.isEmpty() || !encoder.matches(loginData.getPassword(), u.get().getPassword())) {
+            logger.info("User entered wrong credentials.");
             throw new UnauthorizedException("Wrong credentials");
         }
-        return mapper.map(u, UserWithoutPassDTO.class);
+        logger.info(String.format("User with id %d logged successfully.", u.get().getId()));
+        return mapper.map(u.get(), UserWithoutPassDTO.class);
     }
 
     @Transactional
     public UserWithoutPassDTO register(UserRegisterDTO registerData) {
         if (!registerData.getPassword().equals(registerData.getConfirmPassword())) {
+            logger.info("User entering mismatching passwords.");
             throw new BadRequestException("Mismatching password");
         }
         if (userRepository.existsByEmail(registerData.getEmail())) {
+            logger.info("User trying to register with existing email.");
             throw new BadRequestException("Email already exists");
         }
         User u = mapper.map(registerData, User.class);
@@ -67,24 +75,32 @@ public class UserService extends AbstractService {
         shelfRepository.save(shelf1);
         shelfRepository.save(shelf2);
         shelfRepository.save(shelf3);
+        logger.info(String.format("User with id %d registered successfully.", u.getId()));
         return mapper.map(u, UserWithoutPassDTO.class);
 
     }
 
-    public UserWithoutPassDTO getById(int id) {
+    public UserWithFriendRequestsDTO getById(int id) {
         User u = getUserById(id);
-        return mapper.map(u, UserWithoutPassDTO.class);
+        UserWithFriendRequestsDTO returnUser=mapper.map(u,UserWithFriendRequestsDTO.class);
+        List<FriendRequestDTO> requests=friendRequestRepository.findAllByReceiverId(id).stream()
+                .filter(req->!req.isAccepted()&&!req.isRejected())
+                .map(req->mapper.map(req,FriendRequestDTO.class)).collect(Collectors.toList());
+        returnUser.setFriendRequests(requests);
+        return returnUser;
     }
 
     @Transactional
     public UserWithoutPassDTO changePass(ChangePassDTO updateData, int userId) {
         if (!updateData.getNewPass().equals(updateData.getConfirmNewPass())) {
+            logger.info("User entering mismatching passwords.");
             throw new BadRequestException("Mismatching password");
         }
         User u = getUserById(userId);
 
         u.setPassword(encoder.encode(updateData.getNewPass()));
         userRepository.save(u);
+        logger.info(String.format("User with id %d changed password successfully.", u.getId()));
         return mapper.map(u, UserWithoutPassDTO.class);
     }
 
@@ -99,18 +115,22 @@ public class UserService extends AbstractService {
     @Transactional
     public void deleteProfile(int userId) {
         User user = getUserById(userId);
+        shelfRepository.deleteAllByUser(user);
         userRepository.delete(user);
+
+        logger.info(String.format("User with id %d deleted profile successfully.", userId));
     }
 
     @Transactional
     public int follow(int followerId, int followedId) {
-        if(followedId==followerId){
+        if (followedId == followerId) {
             throw new UnauthorizedException("You cannot follow yourself.");
         }
         User follower = getUserById(followerId);
         User followed = getUserById(followedId);
         followed.getFollowers().add(follower);
         userRepository.save(followed);
+        logger.info(String.format("User with id %d now follows user with id %d.", followerId,followedId));
         return followed.getFollowers().size();
     }
 
@@ -118,11 +138,12 @@ public class UserService extends AbstractService {
     public void unfollow(int unfollowId, int userId) {
         User user = getUserById(userId);
         User unfollowed = getUserById(unfollowId);
-        if(!unfollowed.getFollowed().contains(user)){
+        if (!unfollowed.getFollowed().contains(user)) {
             throw new NotFoundException("You are not following this user.");
         }
         unfollowed.getFollowers().remove(user);
         userRepository.save(user);
+        logger.info(String.format("User with id %d is no longer following user with id %d.", userId,unfollowId));
     }
 
     @Transactional
@@ -135,6 +156,7 @@ public class UserService extends AbstractService {
         u.setGender(dto.getGender());
         u.setLinkToSite(dto.getLinkToSite());
         userRepository.save(u);
+        logger.info(String.format("User with id %d updated profile successfully.", userId));
         return mapper.map(u, UserWithoutPassDTO.class);
     }
 
@@ -144,13 +166,13 @@ public class UserService extends AbstractService {
     }
 
     public Set<UserWithoutPassDTO> getUserByBook(int bookId) {
-        Book book = bookRepository.findById(bookId).orElseThrow(()-> new BadRequestException("Book doesn't exist."));
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new BadRequestException("Book doesn't exist."));
         List<BooksShelves> booksShelves = booksShelvesRepository.getByBook_Id(bookId);
         Set<UserWithoutPassDTO> returnUsers = new HashSet<>();
         for (BooksShelves b : booksShelves) {
             returnUsers.add(mapper.map(b.getShelf().getUser(), UserWithoutPassDTO.class));
         }
-        if(returnUsers.isEmpty()){
+        if (returnUsers.isEmpty()) {
             throw new NotFoundException("No users reading this book");
         }
         return returnUsers;
@@ -158,21 +180,20 @@ public class UserService extends AbstractService {
 
     @Transactional
     public int addFriendRequest(int requesterId, int receiverId) {
-        if(requesterId==receiverId){
+        if (requesterId == receiverId) {
+            logger.info("User trying to send forbidden friend requests.");
             throw new UnauthorizedException("You cannot request that friendship.");
         }
         User requester = getUserById(requesterId);
         User receiver = getUserById(receiverId);
 
         if (requester.getFriends().contains(receiver)) {
+            logger.info("User trying to send multiple friend requests.");
             throw new BadRequestException("The user is already a friend.");
         }
 
-        if (friendRequestRepository.existsByRequesterAndReceiver(requester, receiver)) {
-            throw new BadRequestException("The request already exists.");
-        }
-
         if (friendRequestRepository.existsByRequesterAndReceiver(receiver, requester)) {
+            logger.info("User trying to send multiple friend requests.");
             throw new BadRequestException("The request is already pending from the other side.");
         }
 
@@ -181,7 +202,7 @@ public class UserService extends AbstractService {
         friendRequest.setReceiver(receiver);
 
         friendRequestRepository.save(friendRequest);
-
+        logger.info(String.format("User with id %d send friend request to user with id %d.", requesterId,receiverId));
         return requesterId;
     }
 
@@ -193,7 +214,8 @@ public class UserService extends AbstractService {
         FriendRequest friendRequest = checkRequestExists(requester, receiver);
 
         if (friendRequest.isRejected() || friendRequest.isAccepted()) {
-            throw new BadRequestException("The request has already been"
+            logger.info(String.format("User with id %d trying to accept redundant friend request.",requesterId));
+            throw new BadRequestException("The request you are trying to accept is already "
                     + ((friendRequest.isRejected()) ? " rejected" : "accepted"));
         }
 
@@ -207,6 +229,7 @@ public class UserService extends AbstractService {
         friendRequestRepository.save(friendRequest);
         userRepository.save(requester);
         userRepository.save(receiver);
+        logger.info(String.format("User with id %d accepted request for friendship with user with id %d.",requesterId,receiverId));
         return "User " + requesterId + " and user " + receiverId + " are now friends.";
     }
 
@@ -217,11 +240,13 @@ public class UserService extends AbstractService {
 
         FriendRequest friendRequest = checkRequestExists(friend, user);
         if (friendRequest.isRejected() || friendRequest.isAccepted()) {
-            throw new BadRequestException("This user doesn't want to be your friend"
+            logger.info(String.format("User with id %d trying to accept redundant friend request.",userId));
+            throw new BadRequestException("The request you are trying to reject is already "
                     + ((friendRequest.isRejected()) ? " rejected" : "accepted"));
         }
         friendRequest.setRejected(true);
         friendRequestRepository.save(friendRequest);
+        logger.info(String.format("User with id %d rejected request for friendship with user with id %d.",userId,friendId));
         return "You have rejected " + friendId + "'s friend request.";
     }
 
@@ -230,16 +255,18 @@ public class UserService extends AbstractService {
         User user = getUserById(userId);
         User friend = getUserById(friendId);
         if (!user.getFriends().contains(friend)) {
+            logger.info(String.format("User with id %d trying to remove not existing friend.",userId));
             throw new NotFoundException("User with id: " + friendId + " is not your friend.");
         }
         user.getFriends().remove(friend);
         friend.getFriends().remove(user);
         FriendRequest friendRequest = friendRequestRepository.findByRequesterAndReceiver(user, friend)
-                .orElseThrow(()->new NotFoundException("Request is already deleted."));
+                .orElseThrow(() -> new NotFoundException("Request is already deleted."));
 
         friendRequestRepository.delete(friendRequest);
         userRepository.save(user);
         userRepository.save(friend);
+        logger.info(String.format("User with id %d removed user with id %d from there friends.",userId,friendId));
         return "You have removed user " + friendId + " successfully";
     }
 
@@ -256,15 +283,16 @@ public class UserService extends AbstractService {
 
     private FriendRequest checkRequestExists(User requester, User receiver) {
         return friendRequestRepository.findByRequesterAndReceiver(requester, receiver)
-                .orElseThrow(()->new BadRequestException(
+                .orElseThrow(() -> new BadRequestException(
                         "Request with requester " + requester.getId()
-                         + ", and receiver " + receiver.getId() + " doesn't exist"));
+                                + ", and receiver " + receiver.getId() + " doesn't exist"));
     }
+
     @SneakyThrows
     public MimeMessage sendNewTemporaryPassword(EmailDTO email) {
         try {
             User u = userRepository.findByEmail(email.getEmail())
-                    .orElseThrow(()->new NotFoundException("No user with this email"));
+                    .orElseThrow(() -> new NotFoundException("No user with this email"));
             String tempPassword = generateRandomPassword(new Random().nextInt(8, 16));
             u.setPassword(new BCryptPasswordEncoder().encode(tempPassword));
             userRepository.save(u);
@@ -274,8 +302,10 @@ public class UserService extends AbstractService {
             mimeMessage.setRecipient(Message.RecipientType.TO, new InternetAddress(email.getEmail()));
             mimeMessage.setSubject("New Password");
             mimeMessage.setText("Your new password is " + tempPassword);
+            logger.info(String.format("New temporary password send to user with id %d.",u.getId()));
             return mimeMessage;
         } catch (RuntimeException e) {
+            logger.info("Problem with sending email for password change");
             throw new NotFoundException("Problem with sending the email");
         }
     }

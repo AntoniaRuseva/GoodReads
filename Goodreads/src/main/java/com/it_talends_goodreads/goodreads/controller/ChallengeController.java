@@ -4,10 +4,7 @@ import com.it_talends_goodreads.goodreads.model.DTOs.ChallengeProgressDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.ChallengeWithOwnerInfoDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.ChallengeWithoutOwnerDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.CreateChallengeDTO;
-
-
 import com.it_talends_goodreads.goodreads.service.ChallengeService;
-
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,21 +25,22 @@ public class ChallengeController extends AbstractController {
     }
 
     @PutMapping("/challenges/{id}")
-    public ChallengeWithoutOwnerDTO update(@RequestBody CreateChallengeDTO setChallengeDTO, @PathVariable("id") int id, HttpSession session) {
+    public ChallengeWithoutOwnerDTO update(@RequestBody CreateChallengeDTO setChallengeDTO, @PathVariable int id, HttpSession session) {
         int userId = getLoggedId(session);
         return challengeService.updateChallenge(id
                 , setChallengeDTO, userId);
     }
 
     @DeleteMapping("/challenges/{id}")
-    public String delete(@PathVariable("id") int id, HttpSession session) {
+    public String delete(@PathVariable int id, HttpSession session) {
             int userId = getLoggedId(session);
             challengeService.deleteChallenge(id, userId);
-            return "You delete challenge with id " + id;
+            return "You have deleted challenge with id " + id;
     }
 
     @GetMapping("/challenges/{id}")
-    public ChallengeWithOwnerInfoDTO getById(@PathVariable("id") int id, HttpSession session) {
+    public ChallengeWithOwnerInfoDTO getById(@PathVariable int id, HttpSession session) {
+        getLoggedId(session);
         return challengeService.getChallenge(id);
     }
 

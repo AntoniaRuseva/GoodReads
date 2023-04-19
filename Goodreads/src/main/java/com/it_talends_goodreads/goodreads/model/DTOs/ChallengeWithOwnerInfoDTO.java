@@ -15,6 +15,5 @@ public class ChallengeWithOwnerInfoDTO {
     private int number;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dateAdded;
-    private String ownerUserName;
 
 }
