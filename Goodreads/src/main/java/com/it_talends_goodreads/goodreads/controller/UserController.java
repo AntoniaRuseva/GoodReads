@@ -44,9 +44,9 @@ public class UserController extends AbstractController {
         return userService.register(registerData);
     }
 
-    @GetMapping("/users/{id}")
-    public UserWithFriendRequestsDTO getById(@PathVariable int id) {
-        return userService.getById(id);
+    @GetMapping("/users/{id}/{pageN}/{recordCount}")
+    public UserWithFriendRequestsDTO getById(@PathVariable int id,@RequestBody int pageN, int recordCount ) {
+        return userService.getById(id, pageN, recordCount);
     }
 
 

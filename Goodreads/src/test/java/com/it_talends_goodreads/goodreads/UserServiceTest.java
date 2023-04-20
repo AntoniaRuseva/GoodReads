@@ -89,7 +89,7 @@ public class UserServiceTest {
         registerData.setPassword("weakPassword");
         registerData.setConfirmPassword("weakPassword");
         // Calling the register method should throw a ConstraintViolationException
-        userService.register(registerData);-
+        userService.register(registerData);
     }
 }
 

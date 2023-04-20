@@ -81,7 +81,7 @@ public class UserService extends AbstractService {
 
     }
 
-    public UserWithFriendRequestsDTO getById(int id) {
+    public UserWithFriendRequestsDTO getById(int id, int pageN, int recordCount) {
         User u = getUserById(id);
         UserWithFriendRequestsDTO returnUser = mapper.map(u, UserWithFriendRequestsDTO.class);
         List<FriendRequestDTO> requests = friendRequestRepository.findAllByReceiverId(id).stream()

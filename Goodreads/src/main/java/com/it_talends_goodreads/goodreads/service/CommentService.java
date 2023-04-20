@@ -111,7 +111,7 @@ public class CommentService extends AbstractService {
         }
     }
 
-    public List<CommentWithoutOwnerDTO> getAllByReview(int id,int pageN,int recordCount) {
+    public List<CommentWithoutOwnerDTO> getAllByReview(int id) {
         Review review = reviewRepository.findById(id).orElseThrow(() -> new NotFoundException("No such review"));
         List<Comment> comments = commentRepository.findAllByReview(review);
         return comments
