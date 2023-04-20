@@ -1,6 +1,7 @@
 package com.it_talends_goodreads.goodreads.model.entities;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 @Entity
@@ -10,7 +11,7 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BooksShelves {
+public class BooksShelves{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;

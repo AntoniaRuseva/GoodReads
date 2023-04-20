@@ -9,17 +9,21 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.it_talends_goodreads.goodreads.model.exceptions.NotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.util.ArrayList;
 import java.util.List;
+
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +36,7 @@ public class BookService extends AbstractService {
     private BooksShelvesRepository booksShelvesRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(BookService.class);
+
     public BookDetailedInfoDTO getBookById(int id) {
         Book book = bookRepository.findById(id).orElseThrow(() -> new NotFoundException("\"No such book\""));
         return BookDetailedInfoDTO
@@ -52,23 +57,30 @@ public class BookService extends AbstractService {
                 .reviewsCounter(book.getReviews().size())
                 .build();
     }
-
-    public List<BookCommonInfoDTO> getByUserID(int userId) {
-        List<BooksShelves> booksShelves = booksShelvesRepository.getBooksShelvesByShelf_UserId(userId);
-        if (booksShelves.isEmpty()) {
-            throw new NotFoundException("This user doesn't have book on his/her shelves");
-        }
-        return booksShelves
-                .stream()
-                .map(BooksShelves::getBook)
-                .map(b -> BookCommonInfoDTO
-                        .builder()
-                        .id(b.getId())
-                        .title(b.getTitle())
-                        .authorName(b.getAuthor().getName())
-                        .build())
-                .collect(Collectors.toList());
-    }
+//
+//    public BookPageDTO getByUserID(int userId, int pageN, int recordCount) {
+//        Pageable pageable = PageRequest.of(pageN,recordCount);
+//        Page<BooksShelves> page = booksShelvesRepository.getBooksShelvesByShelf_UserId(userId, pageable);
+//
+//        if (page.isEmpty()) {
+//            throw new NotFoundException("This user doesn't have book on his/her shelves");
+//        }
+//        List<BooksShelves> books = page.getContent();
+//        int totalPages = page.getTotalPages();
+//
+//
+//        return BookPageDTO.builder().totalPages(totalPages).books(books.stream().map(bs ->bs.getBook())).build();
+////        return page.
+//stream().
+//map(BooksShelves::getBook)
+//map(b -> BookCommonInfoDTO
+//                        .builder()
+//                       .id(b.getId())
+//                        .title(b.getTitle())
+//                        .authorName(b.getAuthor().getName())
+//                        .build())
+//                .collect(Collectors.toList());
+//    }
 
     @Transactional
     public BookRatingDTO rate(int bookId, BookRateDTO bookRateDTO, int userId) {

@@ -94,19 +94,19 @@ public class UserController extends AbstractController {
 
     @GetMapping("/users/{id}/followers")
     public UserWithFollowersDTO getUsersFollowers(@PathVariable("id") int userId, HttpSession s) {
-        int reqId = getLoggedId(s);
+       getLoggedId(s);
         return userService.getUsersFollowers(userId);
     }
 
     @GetMapping("/users/books/{id}")
     public Set<UserWithoutPassDTO> getUsersByBook(@PathVariable("id") int bookId, HttpSession s) {
-        int userId = getLoggedId(s);
+        getLoggedId(s);
         return userService.getUserByBook(bookId);
     }
 
     @GetMapping("/users/user/{username}")
     public List<UserWithoutPassDTO> getAllByUserName(@PathVariable("username") String userName, HttpSession s) {
-        int userId = getLoggedId(s);
+        getLoggedId(s);
         return userService.getAllByUserName(userName);
     }
 
@@ -142,7 +142,6 @@ public class UserController extends AbstractController {
 
     @PostMapping("/resetPassword")
     public void requestPasswordReset(@RequestBody EmailDTO emailTest) {
-        MimeMessage mimeMessage = userService.sendNewTemporaryPassword(emailTest);
-        new Thread(() -> javaMailSender.send(mimeMessage));
+        userService.sendNewTemporaryPassword(emailTest);
     }
 }
