@@ -13,4 +13,5 @@ public class BookPageDTO {
     private List<BookCommonInfoDTO> books;
     private int currentPage;
     private int totalPages;
+
 }

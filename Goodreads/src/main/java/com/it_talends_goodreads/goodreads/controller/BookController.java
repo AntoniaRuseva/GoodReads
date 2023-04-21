@@ -13,10 +13,12 @@ public class BookController extends AbstractController {
     @Autowired
     private BookService bookService;
 
+
     @GetMapping("/books/{id}")
     public BookDetailedInfoDTO getInfoByID(@PathVariable int id) {
         return bookService.getBookById(id);
     }
+
     @GetMapping("/books/users/{id}/{pageN}/{recordsCount}")
     public BookPageDTO getByUserID(@PathVariable int id,@PathVariable int pageN, @PathVariable int recordCount) {
         return bookService.getByUserID(id,pageN, recordCount);

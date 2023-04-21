@@ -68,10 +68,11 @@ public class UserService extends AbstractService {
         User u = mapper.map(registerData, User.class);
 
         u.setPassword(encoder.encode(u.getPassword()));
+        Shelf shelf1 = Shelf.builder().user(u).name("Read").booksShelves(new ArrayList<>()).build();
+        Shelf shelf2 = Shelf.builder().user(u).name("Currently-reading").booksShelves(new ArrayList<>()).build();
+        Shelf shelf3 = Shelf.builder().user(u).name("To-read").booksShelves(new ArrayList<>()).build();
+
         userRepository.save(u);
-        Shelf shelf1 = Shelf.builder().user(u).name("Read").build();
-        Shelf shelf2 = Shelf.builder().user(u).name("Currently-reading").build();
-        Shelf shelf3 = Shelf.builder().user(u).name("To-read").build();
         shelfRepository.save(shelf1);
         shelfRepository.save(shelf2);
         shelfRepository.save(shelf3);
@@ -80,12 +81,12 @@ public class UserService extends AbstractService {
 
     }
 
-    public UserWithFriendRequestsDTO getById(int id) {
+    public UserWithFriendRequestsDTO getById(int id, int pageN, int recordCount) {
         User u = getUserById(id);
-        UserWithFriendRequestsDTO returnUser=mapper.map(u,UserWithFriendRequestsDTO.class);
-        List<FriendRequestDTO> requests=friendRequestRepository.findAllByReceiverId(id).stream()
-                .filter(req->!req.isAccepted()&&!req.isRejected())
-                .map(req->mapper.map(req,FriendRequestDTO.class)).collect(Collectors.toList());
+        UserWithFriendRequestsDTO returnUser = mapper.map(u, UserWithFriendRequestsDTO.class);
+        List<FriendRequestDTO> requests = friendRequestRepository.findAllByReceiverId(id).stream()
+                .filter(req -> !req.isAccepted() && !req.isRejected())
+                .map(req -> mapper.map(req, FriendRequestDTO.class)).collect(Collectors.toList());
         returnUser.setFriendRequests(requests);
         returnUser.setShelves(shelfRepository.findAllByUser(u).stream()
                 .map(s -> ShelfWithoutOwnerAndBooksDTO
@@ -136,7 +137,7 @@ public class UserService extends AbstractService {
         User followed = getUserById(followedId);
         followed.getFollowers().add(follower);
         userRepository.save(followed);
-        logger.info(String.format("User with id %d now follows user with id %d.", followerId,followedId));
+        logger.info(String.format("User with id %d now follows user with id %d.", followerId, followedId));
         return followed.getFollowers().size();
     }
 
@@ -149,7 +150,7 @@ public class UserService extends AbstractService {
         }
         unfollowed.getFollowers().remove(user);
         userRepository.save(user);
-        logger.info(String.format("User with id %d is no longer following user with id %d.", userId,unfollowId));
+        logger.info(String.format("User with id %d is no longer following user with id %d.", userId, unfollowId));
     }
 
     @Transactional
@@ -208,7 +209,7 @@ public class UserService extends AbstractService {
         friendRequest.setReceiver(receiver);
 
         friendRequestRepository.save(friendRequest);
-        logger.info(String.format("User with id %d send friend request to user with id %d.", requesterId,receiverId));
+        logger.info(String.format("User with id %d send friend request to user with id %d.", requesterId, receiverId));
         return requesterId;
     }
 
@@ -220,7 +221,7 @@ public class UserService extends AbstractService {
         FriendRequest friendRequest = checkRequestExists(requester, receiver);
 
         if (friendRequest.isRejected() || friendRequest.isAccepted()) {
-            logger.info(String.format("User with id %d trying to accept redundant friend request.",requesterId));
+            logger.info(String.format("User with id %d trying to accept redundant friend request.", requesterId));
             throw new BadRequestException("The request you are trying to accept is already "
                     + ((friendRequest.isRejected()) ? " rejected" : "accepted"));
         }
@@ -235,7 +236,7 @@ public class UserService extends AbstractService {
         friendRequestRepository.save(friendRequest);
         userRepository.save(requester);
         userRepository.save(receiver);
-        logger.info(String.format("User with id %d accepted request for friendship with user with id %d.",requesterId,receiverId));
+        logger.info(String.format("User with id %d accepted request for friendship with user with id %d.", requesterId, receiverId));
         return "User " + requesterId + " and user " + receiverId + " are now friends.";
     }
 
@@ -246,13 +247,13 @@ public class UserService extends AbstractService {
 
         FriendRequest friendRequest = checkRequestExists(friend, user);
         if (friendRequest.isRejected() || friendRequest.isAccepted()) {
-            logger.info(String.format("User with id %d trying to accept redundant friend request.",userId));
+            logger.info(String.format("User with id %d trying to accept redundant friend request.", userId));
             throw new BadRequestException("The request you are trying to reject is already "
                     + ((friendRequest.isRejected()) ? " rejected" : "accepted"));
         }
         friendRequest.setRejected(true);
         friendRequestRepository.save(friendRequest);
-        logger.info(String.format("User with id %d rejected request for friendship with user with id %d.",userId,friendId));
+        logger.info(String.format("User with id %d rejected request for friendship with user with id %d.", userId, friendId));
         return "You have rejected " + friendId + "'s friend request.";
     }
 
@@ -261,7 +262,7 @@ public class UserService extends AbstractService {
         User user = getUserById(userId);
         User friend = getUserById(friendId);
         if (!user.getFriends().contains(friend)) {
-            logger.info(String.format("User with id %d trying to remove not existing friend.",userId));
+            logger.info(String.format("User with id %d trying to remove not existing friend.", userId));
             throw new NotFoundException("User with id: " + friendId + " is not your friend.");
         }
         user.getFriends().remove(friend);
@@ -272,7 +273,7 @@ public class UserService extends AbstractService {
         friendRequestRepository.delete(friendRequest);
         userRepository.save(user);
         userRepository.save(friend);
-        logger.info(String.format("User with id %d removed user with id %d from there friends.",userId,friendId));
+        logger.info(String.format("User with id %d removed user with id %d from there friends.", userId, friendId));
         return "You have removed user " + friendId + " successfully";
     }
 
@@ -295,7 +296,7 @@ public class UserService extends AbstractService {
     }
 
     @SneakyThrows
-    public MimeMessage sendNewTemporaryPassword(EmailDTO email) {
+    public void sendNewTemporaryPassword(EmailDTO email) {
         try {
             User u = userRepository.findByEmail(email.getEmail())
                     .orElseThrow(() -> new NotFoundException("No user with this email"));
@@ -308,8 +309,8 @@ public class UserService extends AbstractService {
             mimeMessage.setRecipient(Message.RecipientType.TO, new InternetAddress(email.getEmail()));
             mimeMessage.setSubject("New Password");
             mimeMessage.setText("Your new password is " + tempPassword);
-            logger.info(String.format("New temporary password send to user with id %d.",u.getId()));
-            return mimeMessage;
+            logger.info(String.format("New temporary password send to user with id %d.", u.getId()));
+            new Thread(() -> javaMailSender.send(mimeMessage)).start();
         } catch (RuntimeException e) {
             logger.info("Problem with sending email for password change");
             throw new NotFoundException("Problem with sending the email");
