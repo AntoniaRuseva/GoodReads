@@ -9,6 +9,9 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -36,10 +39,8 @@ public class CommentController extends AbstractController {
         commentService.delete(id, userId);
         return "You delete comment with id " + id;
     }
-
-
-    @GetMapping("/comments/reviews/{id}/{pageN}/{recordCount}")
-    public CommentPageDTO getAllByReview(@PathVariable int id, @PathVariable int pageN, @PathVariable int recordCount) {
+    @GetMapping("/comments/reviews/{id}")
+    public CommentPageDTO getAllByReview(@PathVariable int id, int pageN, int recordCount) {
         return commentService.getAllByReview(id, pageN, recordCount);
     }
 }

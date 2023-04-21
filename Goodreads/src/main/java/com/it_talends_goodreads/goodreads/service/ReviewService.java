@@ -72,6 +72,9 @@ public class ReviewService extends AbstractService {
     public ReviewPageDTO getAllReviews(int id, int pageN, int recordCount) {
         Pageable pageable = PageRequest.of(pageN, recordCount);
         Page<Review> list = reviewRepository.getAllByBookId(id, pageable);
+        if (list.isEmpty()) {
+            throw new NotFoundException("There is no reviews for this book!");
+        }
         int totalPages = list.getTotalPages();
         return ReviewPageDTO
                 .builder()

@@ -4,32 +4,30 @@ import com.it_talends_goodreads.goodreads.model.DTOs.*;
 
 import com.it_talends_goodreads.goodreads.model.entities.Shelf;
 import com.it_talends_goodreads.goodreads.model.entities.Book;
-import com.it_talends_goodreads.goodreads.model.entities.BooksShelves;
 import com.it_talends_goodreads.goodreads.model.entities.FriendRequest;
 import com.it_talends_goodreads.goodreads.model.entities.User;
 import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
 import com.it_talends_goodreads.goodreads.model.exceptions.NotFoundException;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
 import com.it_talends_goodreads.goodreads.model.repositories.ShelfRepository;
-import com.it_talends_goodreads.goodreads.model.repositories.BooksShelvesRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.FriendRequestRepository;
 import jakarta.mail.Message;
 import jakarta.mail.internet.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import javax.sql.DataSource;
 import java.security.SecureRandom;
-
 import java.util.*;
-
 import java.util.stream.Collectors;
 
 
@@ -40,11 +38,11 @@ public class UserService extends AbstractService {
     @Autowired
     private ShelfRepository shelfRepository;
     @Autowired
-    private BooksShelvesRepository booksShelvesRepository;
-    @Autowired
     private FriendRequestRepository friendRequestRepository;
     @Autowired
     private JavaMailSender javaMailSender;
+   @PersistenceContext
+    private EntityManager entityManager;
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     public UserWithoutPassDTO login(LoginDTO loginData) {
@@ -115,11 +113,16 @@ public class UserService extends AbstractService {
     }
 
     @Transactional
-    public List<UserWithoutPassDTO> getAll() {
-        return userRepository.findAll()
-                .stream()
-                .map(u -> mapper.map(u, UserWithoutPassDTO.class))
-                .collect(Collectors.toList());
+    public UserPageDTO getAll(int pageN,int recordCount) {
+        Pageable pageable= PageRequest.of(pageN,recordCount);
+        Page<User> list =userRepository.findAll(pageable);
+        int totalPages=list.getTotalPages();
+        return UserPageDTO
+                .builder()
+                .currentPage(pageN)
+                .totalPages(totalPages)
+                .users(list.map(u -> mapper.map(u, UserWithoutPassDTO.class)))
+                .build();
     }
 
     @Transactional
@@ -175,16 +178,22 @@ public class UserService extends AbstractService {
     }
 
     public Set<UserWithoutPassDTO> getUserByBook(int bookId) {
-        bookRepository.findById(bookId).orElseThrow(() -> new BadRequestException("Book doesn't exist."));
-        List<BooksShelves> booksShelves = booksShelvesRepository.getByBook_Id(bookId);
-        Set<UserWithoutPassDTO> returnUsers = new HashSet<>();
-        for (BooksShelves b : booksShelves) {
-            returnUsers.add(mapper.map(b.getShelf().getUser(), UserWithoutPassDTO.class));
-        }
-        if (returnUsers.isEmpty()) {
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new BadRequestException("Book doesn't exist."));
+        List<User> users = entityManager.createNativeQuery(
+                        "SELECT DISTINCT u.* " +
+                                "FROM users u " +
+                                "INNER JOIN shelves s ON s.user_id = u.id " +
+                                "INNER JOIN books_shelves bs ON bs.shelf_id = s.id " +
+                                "WHERE bs.book_id = :bookId", User.class)
+                .setParameter("bookId", bookId)
+                .getResultList();
+
+        if (users.isEmpty()) {
             throw new NotFoundException("No users reading this book");
         }
-        return returnUsers;
+        return users.stream()
+                .map(u -> mapper.map(u, UserWithoutPassDTO.class))
+                .collect(Collectors.toSet());
     }
 
     @Transactional
@@ -269,6 +278,7 @@ public class UserService extends AbstractService {
         }
         user.getFriends().remove(friend);
         friend.getFriends().remove(user);
+
         FriendRequest friendRequest = friendRequestRepository.findByRequesterAndReceiver(user, friend)
                 .orElseThrow(() -> new NotFoundException("Request is already deleted."));
 
@@ -358,14 +368,18 @@ public class UserService extends AbstractService {
         return shuffled.toString();
     }
 
-    public List<UserWithoutPassDTO> getAllByUserName(String userName) {
-        List<User> users = userRepository.findAllByUserNameContaining(userName);
+    public UserPageDTO getAllByUserName(String userName,int pageN,int recordCount) {
+        Pageable pageable=PageRequest.of(pageN,recordCount);
+        Page<User> users = userRepository.findAllByUserNameContaining(userName,pageable);
+        int totalPages=users.getTotalPages();
         if (users.isEmpty()) {
             throw new NotFoundException("User doesn't exist!");
         }
-        return users
-                .stream()
-                .map(u -> mapper.map(u, UserWithoutPassDTO.class))
-                .collect(Collectors.toList());
+        return UserPageDTO
+                .builder()
+                .currentPage(pageN)
+                .totalPages(totalPages)
+                .users(users.map(u -> mapper.map(u, UserWithoutPassDTO.class)))
+                .build();
     }
 }

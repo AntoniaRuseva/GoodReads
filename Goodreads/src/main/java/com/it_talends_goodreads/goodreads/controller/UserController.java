@@ -4,14 +4,11 @@ import com.it_talends_goodreads.goodreads.model.DTOs.*;
 import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
 import com.it_talends_goodreads.goodreads.service.UserService;
-import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
 
-import javax.sql.DataSource;
 import java.util.List;
 import java.util.Set;
 
@@ -45,7 +42,7 @@ public class UserController extends AbstractController {
     }
 
     @GetMapping("/users/{id}")
-    public UserWithFriendRequestsDTO getById(@PathVariable int id) {
+    public UserWithFriendRequestsDTO getById(@PathVariable int id ) {
         return userService.getById(id);
     }
 
@@ -57,9 +54,9 @@ public class UserController extends AbstractController {
     }
 
 
-    @GetMapping("/users")
-    public List<UserWithoutPassDTO> getAll() {
-        return userService.getAll();
+    @GetMapping("/users/{pageN}/{recordCount}")
+    public UserPageDTO getAll(@PathVariable int pageN, @PathVariable int recordCount) {
+        return userService.getAll( pageN, recordCount);
     }
 
     @DeleteMapping("/users")
@@ -104,10 +101,9 @@ public class UserController extends AbstractController {
         return userService.getUserByBook(bookId);
     }
 
-    @GetMapping("/users/user/{username}")
-    public List<UserWithoutPassDTO> getAllByUserName(@PathVariable("username") String userName, HttpSession s) {
-        getLoggedId(s);
-        return userService.getAllByUserName(userName);
+    @GetMapping("/users/user/{username}/{pageN}/{recordCount}")
+    public UserPageDTO getAllByUserName(@PathVariable("username") String userName,@PathVariable int pageN,@PathVariable int recordCount) {
+        return userService.getAllByUserName(userName,pageN,recordCount);
     }
 
     @PostMapping("/users/friends/{id}")
