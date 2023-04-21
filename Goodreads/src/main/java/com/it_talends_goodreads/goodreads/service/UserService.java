@@ -15,6 +15,8 @@ import com.it_talends_goodreads.goodreads.model.repositories.BooksShelvesReposit
 import com.it_talends_goodreads.goodreads.model.repositories.FriendRequestRepository;
 import jakarta.mail.Message;
 import jakarta.mail.internet.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
@@ -43,6 +45,8 @@ public class UserService extends AbstractService {
     private FriendRequestRepository friendRequestRepository;
     @Autowired
     private JavaMailSender javaMailSender;
+   @PersistenceContext
+    private EntityManager entityManager;
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     public UserWithoutPassDTO login(LoginDTO loginData) {
@@ -82,10 +86,10 @@ public class UserService extends AbstractService {
 
     public UserWithFriendRequestsDTO getById(int id) {
         User u = getUserById(id);
-        UserWithFriendRequestsDTO returnUser=mapper.map(u,UserWithFriendRequestsDTO.class);
-        List<FriendRequestDTO> requests=friendRequestRepository.findAllByReceiverId(id).stream()
-                .filter(req->!req.isAccepted()&&!req.isRejected())
-                .map(req->mapper.map(req,FriendRequestDTO.class)).collect(Collectors.toList());
+        UserWithFriendRequestsDTO returnUser = mapper.map(u, UserWithFriendRequestsDTO.class);
+        List<FriendRequestDTO> requests = friendRequestRepository.findAllByReceiverId(id).stream()
+                .filter(req -> !req.isAccepted() && !req.isRejected())
+                .map(req -> mapper.map(req, FriendRequestDTO.class)).collect(Collectors.toList());
         returnUser.setFriendRequests(requests);
         return returnUser;
     }
@@ -129,7 +133,7 @@ public class UserService extends AbstractService {
         User followed = getUserById(followedId);
         followed.getFollowers().add(follower);
         userRepository.save(followed);
-        logger.info(String.format("User with id %d now follows user with id %d.", followerId,followedId));
+        logger.info(String.format("User with id %d now follows user with id %d.", followerId, followedId));
         return followed.getFollowers().size();
     }
 
@@ -142,7 +146,7 @@ public class UserService extends AbstractService {
         }
         unfollowed.getFollowers().remove(user);
         userRepository.save(user);
-        logger.info(String.format("User with id %d is no longer following user with id %d.", userId,unfollowId));
+        logger.info(String.format("User with id %d is no longer following user with id %d.", userId, unfollowId));
     }
 
     @Transactional
@@ -166,15 +170,21 @@ public class UserService extends AbstractService {
 
     public Set<UserWithoutPassDTO> getUserByBook(int bookId) {
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new BadRequestException("Book doesn't exist."));
-        List<BooksShelves> booksShelves = booksShelvesRepository.getByBook_Id(bookId);
-        Set<UserWithoutPassDTO> returnUsers = new HashSet<>();
-        for (BooksShelves b : booksShelves) {
-            returnUsers.add(mapper.map(b.getShelf().getUser(), UserWithoutPassDTO.class));
-        }
-        if (returnUsers.isEmpty()) {
+        List<User> users = entityManager.createNativeQuery(
+                        "SELECT DISTINCT u.* " +
+                                "FROM users u " +
+                                "INNER JOIN shelves s ON s.user_id = u.id " +
+                                "INNER JOIN books_shelves bs ON bs.shelf_id = s.id " +
+                                "WHERE bs.book_id = :bookId", User.class)
+                .setParameter("bookId", bookId)
+                .getResultList();
+
+        if (users.isEmpty()) {
             throw new NotFoundException("No users reading this book");
         }
-        return returnUsers;
+        return users.stream()
+                .map(u -> mapper.map(u, UserWithoutPassDTO.class))
+                .collect(Collectors.toSet());
     }
 
     @Transactional
@@ -201,7 +211,7 @@ public class UserService extends AbstractService {
         friendRequest.setReceiver(receiver);
 
         friendRequestRepository.save(friendRequest);
-        logger.info(String.format("User with id %d send friend request to user with id %d.", requesterId,receiverId));
+        logger.info(String.format("User with id %d send friend request to user with id %d.", requesterId, receiverId));
         return requesterId;
     }
 
@@ -213,7 +223,7 @@ public class UserService extends AbstractService {
         FriendRequest friendRequest = checkRequestExists(requester, receiver);
 
         if (friendRequest.isRejected() || friendRequest.isAccepted()) {
-            logger.info(String.format("User with id %d trying to accept redundant friend request.",requesterId));
+            logger.info(String.format("User with id %d trying to accept redundant friend request.", requesterId));
             throw new BadRequestException("The request you are trying to accept is already "
                     + ((friendRequest.isRejected()) ? " rejected" : "accepted"));
         }
@@ -228,7 +238,7 @@ public class UserService extends AbstractService {
         friendRequestRepository.save(friendRequest);
         userRepository.save(requester);
         userRepository.save(receiver);
-        logger.info(String.format("User with id %d accepted request for friendship with user with id %d.",requesterId,receiverId));
+        logger.info(String.format("User with id %d accepted request for friendship with user with id %d.", requesterId, receiverId));
         return "User " + requesterId + " and user " + receiverId + " are now friends.";
     }
 
@@ -239,13 +249,13 @@ public class UserService extends AbstractService {
 
         FriendRequest friendRequest = checkRequestExists(friend, user);
         if (friendRequest.isRejected() || friendRequest.isAccepted()) {
-            logger.info(String.format("User with id %d trying to accept redundant friend request.",userId));
+            logger.info(String.format("User with id %d trying to accept redundant friend request.", userId));
             throw new BadRequestException("The request you are trying to reject is already "
                     + ((friendRequest.isRejected()) ? " rejected" : "accepted"));
         }
         friendRequest.setRejected(true);
         friendRequestRepository.save(friendRequest);
-        logger.info(String.format("User with id %d rejected request for friendship with user with id %d.",userId,friendId));
+        logger.info(String.format("User with id %d rejected request for friendship with user with id %d.", userId, friendId));
         return "You have rejected " + friendId + "'s friend request.";
     }
 
@@ -254,18 +264,19 @@ public class UserService extends AbstractService {
         User user = getUserById(userId);
         User friend = getUserById(friendId);
         if (!user.getFriends().contains(friend)) {
-            logger.info(String.format("User with id %d trying to remove not existing friend.",userId));
+            logger.info(String.format("User with id %d trying to remove not existing friend.", userId));
             throw new NotFoundException("User with id: " + friendId + " is not your friend.");
         }
         user.getFriends().remove(friend);
         friend.getFriends().remove(user);
+
         FriendRequest friendRequest = friendRequestRepository.findByRequesterAndReceiver(user, friend)
                 .orElseThrow(() -> new NotFoundException("Request is already deleted."));
 
         friendRequestRepository.delete(friendRequest);
         userRepository.save(user);
         userRepository.save(friend);
-        logger.info(String.format("User with id %d removed user with id %d from there friends.",userId,friendId));
+        logger.info(String.format("User with id %d removed user with id %d from there friends.", userId, friendId));
         return "You have removed user " + friendId + " successfully";
     }
 
@@ -301,7 +312,7 @@ public class UserService extends AbstractService {
             mimeMessage.setRecipient(Message.RecipientType.TO, new InternetAddress(email.getEmail()));
             mimeMessage.setSubject("New Password");
             mimeMessage.setText("Your new password is " + tempPassword);
-            logger.info(String.format("New temporary password send to user with id %d.",u.getId()));
+            logger.info(String.format("New temporary password send to user with id %d.", u.getId()));
             return mimeMessage;
         } catch (RuntimeException e) {
             logger.info("Problem with sending email for password change");
