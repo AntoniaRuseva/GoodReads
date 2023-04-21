@@ -8,6 +8,9 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -37,7 +40,7 @@ public class CommentController extends AbstractController {
     }
 
     @GetMapping("/comments/reviews/{id}")
-    public List<CommentWithoutOwnerDTO> getAllByReview(@PathVariable int id) {
-        return commentService.getAllByReview(id);
+    public Page<CommentWithoutOwnerDTO> getAllByReview(@PathVariable int id, int pageN, int recordCount) {
+        return commentService.getAllByReview(id, pageN, recordCount);
     }
 }

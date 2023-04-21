@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -55,7 +56,6 @@ public class CommentService extends AbstractService {
                     .builder()
                     .writer(user)
                     .review(review)
-                    .parent(null)
                     .content(createCommentDTO.getContent())
                     .build();
         }
@@ -63,7 +63,7 @@ public class CommentService extends AbstractService {
         CommentWithoutOwnerDTO result =  CommentWithoutOwnerDTO
                 .builder()
                 .id(comment.getId())
-                .parentId(0)
+                .parentId(createCommentDTO.getParentId())
                 .writerName(comment.getWriter().getUserName())
                 .reviewId(comment.getReview().getId())
                 .content(comment.getContent())

@@ -2,6 +2,7 @@ package com.it_talends_goodreads.goodreads.model.DTOs;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.data.domain.Pageable;
 
 @Getter
 @Setter
@@ -15,4 +16,5 @@ public class BookCommonInfoDTO {
     private String title;
     @NotNull
     private String authorName;
+
 }

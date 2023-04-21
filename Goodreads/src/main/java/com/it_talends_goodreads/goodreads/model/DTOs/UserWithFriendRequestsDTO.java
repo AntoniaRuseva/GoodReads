@@ -1,15 +1,14 @@
 package com.it_talends_goodreads.goodreads.model.DTOs;
 
 import com.it_talends_goodreads.goodreads.model.entities.FriendRequest;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.it_talends_goodreads.goodreads.model.entities.Shelf;
+import lombok.*;
 
 import java.util.List;
 
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserWithFriendRequestsDTO {
@@ -18,4 +17,5 @@ public class UserWithFriendRequestsDTO {
     private String username;
     private String profilePhoto;
     private List<FriendRequestDTO> friendRequests;
+    private List<ShelfWithoutOwnerAndBooksDTO> shelves;
 }

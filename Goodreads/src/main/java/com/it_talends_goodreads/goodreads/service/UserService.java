@@ -72,10 +72,11 @@ public class UserService extends AbstractService {
         User u = mapper.map(registerData, User.class);
 
         u.setPassword(encoder.encode(u.getPassword()));
+        Shelf shelf1 = Shelf.builder().user(u).name("Read").booksShelves(new ArrayList<>()).build();
+        Shelf shelf2 = Shelf.builder().user(u).name("Currently-reading").booksShelves(new ArrayList<>()).build();
+        Shelf shelf3 = Shelf.builder().user(u).name("To-read").booksShelves(new ArrayList<>()).build();
+
         userRepository.save(u);
-        Shelf shelf1 = Shelf.builder().user(u).name("Read").build();
-        Shelf shelf2 = Shelf.builder().user(u).name("Currently-reading").build();
-        Shelf shelf3 = Shelf.builder().user(u).name("To-read").build();
         shelfRepository.save(shelf1);
         shelfRepository.save(shelf2);
         shelfRepository.save(shelf3);
@@ -84,13 +85,22 @@ public class UserService extends AbstractService {
 
     }
 
-    public UserWithFriendRequestsDTO getById(int id) {
+    public UserWithFriendRequestsDTO getById(int id, int pageN, int recordCount) {
         User u = getUserById(id);
         UserWithFriendRequestsDTO returnUser = mapper.map(u, UserWithFriendRequestsDTO.class);
         List<FriendRequestDTO> requests = friendRequestRepository.findAllByReceiverId(id).stream()
                 .filter(req -> !req.isAccepted() && !req.isRejected())
                 .map(req -> mapper.map(req, FriendRequestDTO.class)).collect(Collectors.toList());
         returnUser.setFriendRequests(requests);
+        System.out.println(u.getShelves());
+
+        returnUser.setShelves(shelfRepository.findAllByUser(u).stream()
+                .map(s -> ShelfWithoutOwnerAndBooksDTO
+                        .builder()
+                        .id(s.getId())
+                        .name(s.getName())
+                        .build())
+                .collect(Collectors.toList()));
         return returnUser;
     }
 
@@ -299,7 +309,7 @@ public class UserService extends AbstractService {
     }
 
     @SneakyThrows
-    public MimeMessage sendNewTemporaryPassword(EmailDTO email) {
+    public void sendNewTemporaryPassword(EmailDTO email) {
         try {
             User u = userRepository.findByEmail(email.getEmail())
                     .orElseThrow(() -> new NotFoundException("No user with this email"));
@@ -313,7 +323,7 @@ public class UserService extends AbstractService {
             mimeMessage.setSubject("New Password");
             mimeMessage.setText("Your new password is " + tempPassword);
             logger.info(String.format("New temporary password send to user with id %d.", u.getId()));
-            return mimeMessage;
+            new Thread(() -> javaMailSender.send(mimeMessage)).start();
         } catch (RuntimeException e) {
             logger.info("Problem with sending email for password change");
             throw new NotFoundException("Problem with sending the email");

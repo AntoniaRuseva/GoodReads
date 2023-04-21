@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment,Integer> {
     List<Comment> findAllByReview(Review review);
+    List<Comment> removeCommentsByReview(Review review);
 }
