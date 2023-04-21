@@ -12,14 +12,13 @@ import java.util.List;
 public class BookController extends AbstractController {
     @Autowired
     private BookService bookService;
-
     @GetMapping("/books/{id}")
     public BookDetailedInfoDTO getInfoByID(@PathVariable int id) {
         return bookService.getBookById(id);
     }
     @GetMapping("/books/users/{id}/{pageN}/{recordCount}")
     public BookPageDTO getByUserID(@PathVariable int id,@PathVariable int pageN, @PathVariable int recordCount ) {
-        return bookService.getByUserID(id,pageN,recordCount);
+        return bookService.getByUserID(id, pageN, recordCount);
     }
     @PutMapping("/books/{id}")
     public BookRatingDTO rate(@PathVariable("id") int bookId, @Valid @RequestBody BookRateDTO bookRateDTO, HttpSession session) {

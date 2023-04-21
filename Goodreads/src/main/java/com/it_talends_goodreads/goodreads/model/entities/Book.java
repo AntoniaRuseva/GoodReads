@@ -33,7 +33,7 @@ public class Book {
     private Set<Category> categories = new HashSet<>();
 
 
-    @ManyToMany(mappedBy = "ratedBooks")
+    @ManyToMany(mappedBy = "ratedBooks", fetch = FetchType.LAZY)
     private Set<User> rateByd;
     @OneToMany(mappedBy = "book")
     private List<BooksShelves> booksShelves;

@@ -1,17 +1,14 @@
 package com.it_talends_goodreads.goodreads.model.DTOs;
 
 import lombok.*;
-
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class BookPageDTO {
-    private List<BookCommonInfoDTO> books;
+public class ReviewPageDTO {
+    Page<ReturnReviewWithoutBookDTO> reviews;
     private int currentPage;
     private int totalPages;
-
 }

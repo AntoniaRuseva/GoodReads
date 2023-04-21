@@ -58,12 +58,14 @@ public class BookService extends AbstractService {
                 .build();
     }
 
-    public List<BookCommonInfoDTO> getByUserID(int userId) {
-        List<BooksShelves> booksShelves = booksShelvesRepository.getBooksShelvesByShelf_UserId(userId);
+    public BookPageDTO getByUserID(int userId,int pageN,int recordCount) {
+        Pageable pageable = PageRequest.of(pageN, recordCount);
+        Page<BooksShelves> booksShelves = booksShelvesRepository.getBooksShelvesByShelf_UserId(userId,pageable);
         if (booksShelves.isEmpty()) {
             throw new NotFoundException("This user doesn't have book on his/her shelves");
         }
-        return booksShelves
+        int totalPages = booksShelves.getTotalPages();
+        return BookPageDTO.builder().currentPage(pageN).totalPages(totalPages).books(booksShelves
                 .stream()
                 .map(BooksShelves::getBook)
                 .map(b -> BookCommonInfoDTO
@@ -72,7 +74,8 @@ public class BookService extends AbstractService {
                         .title(b.getTitle())
                         .authorName(b.getAuthor().getName())
                         .build())
-                .collect(Collectors.toList());
+                .collect(Collectors.toList())).build();
+
     }
     @Transactional
     public BookRatingDTO rate(int bookId, BookRateDTO bookRateDTO, int userId) {

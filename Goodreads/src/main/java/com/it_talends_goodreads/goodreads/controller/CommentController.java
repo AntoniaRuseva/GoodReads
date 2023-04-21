@@ -1,6 +1,7 @@
 package com.it_talends_goodreads.goodreads.controller;
 
 import com.it_talends_goodreads.goodreads.model.DTOs.CommentContentDTO;
+import com.it_talends_goodreads.goodreads.model.DTOs.CommentPageDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.CommentWithoutOwnerDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.CreateCommentDTO;
 import com.it_talends_goodreads.goodreads.service.CommentService;
@@ -38,9 +39,8 @@ public class CommentController extends AbstractController {
         commentService.delete(id, userId);
         return "You delete comment with id " + id;
     }
-
     @GetMapping("/comments/reviews/{id}")
-    public Page<CommentWithoutOwnerDTO> getAllByReview(@PathVariable int id, int pageN, int recordCount) {
+    public CommentPageDTO getAllByReview(@PathVariable int id, int pageN, int recordCount) {
         return commentService.getAllByReview(id, pageN, recordCount);
     }
 }

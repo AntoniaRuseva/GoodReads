@@ -4,14 +4,12 @@ import com.it_talends_goodreads.goodreads.model.DTOs.*;
 
 import com.it_talends_goodreads.goodreads.model.entities.Shelf;
 import com.it_talends_goodreads.goodreads.model.entities.Book;
-import com.it_talends_goodreads.goodreads.model.entities.BooksShelves;
 import com.it_talends_goodreads.goodreads.model.entities.FriendRequest;
 import com.it_talends_goodreads.goodreads.model.entities.User;
 import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
 import com.it_talends_goodreads.goodreads.model.exceptions.NotFoundException;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
 import com.it_talends_goodreads.goodreads.model.repositories.ShelfRepository;
-import com.it_talends_goodreads.goodreads.model.repositories.BooksShelvesRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.FriendRequestRepository;
 import jakarta.mail.Message;
 import jakarta.mail.internet.*;
@@ -22,6 +20,9 @@ import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -39,8 +40,6 @@ public class UserService extends AbstractService {
     private BCryptPasswordEncoder encoder;
     @Autowired
     private ShelfRepository shelfRepository;
-    @Autowired
-    private BooksShelvesRepository booksShelvesRepository;
     @Autowired
     private FriendRequestRepository friendRequestRepository;
     @Autowired
@@ -85,15 +84,13 @@ public class UserService extends AbstractService {
 
     }
 
-    public UserWithFriendRequestsDTO getById(int id, int pageN, int recordCount) {
+    public UserWithFriendRequestsDTO getById(int id) {
         User u = getUserById(id);
         UserWithFriendRequestsDTO returnUser = mapper.map(u, UserWithFriendRequestsDTO.class);
         List<FriendRequestDTO> requests = friendRequestRepository.findAllByReceiverId(id).stream()
                 .filter(req -> !req.isAccepted() && !req.isRejected())
                 .map(req -> mapper.map(req, FriendRequestDTO.class)).collect(Collectors.toList());
         returnUser.setFriendRequests(requests);
-        System.out.println(u.getShelves());
-
         returnUser.setShelves(shelfRepository.findAllByUser(u).stream()
                 .map(s -> ShelfWithoutOwnerAndBooksDTO
                         .builder()
@@ -119,11 +116,16 @@ public class UserService extends AbstractService {
     }
 
     @Transactional
-    public List<UserWithoutPassDTO> getAll() {
-        return userRepository.findAll()
-                .stream()
-                .map(u -> mapper.map(u, UserWithoutPassDTO.class))
-                .collect(Collectors.toList());
+    public UserPageDTO getAll(int pageN,int recordCount) {
+        Pageable pageable= PageRequest.of(pageN,recordCount);
+        Page<User> list =userRepository.findAll(pageable);
+        int totalPages=list.getTotalPages();
+        return UserPageDTO
+                .builder()
+                .currentPage(pageN)
+                .totalPages(totalPages)
+                .users(list.map(u -> mapper.map(u, UserWithoutPassDTO.class)))
+                .build();
     }
 
     @Transactional
@@ -369,14 +371,18 @@ public class UserService extends AbstractService {
         return shuffled.toString();
     }
 
-    public List<UserWithoutPassDTO> getAllByUserName(String userName) {
-        List<User> users = userRepository.findAllByUserNameContaining(userName);
+    public UserPageDTO getAllByUserName(String userName,int pageN,int recordCount) {
+        Pageable pageable=PageRequest.of(pageN,recordCount);
+        Page<User> users = userRepository.findAllByUserNameContaining(userName,pageable);
+        int totalPages=users.getTotalPages();
         if (users.isEmpty()) {
             throw new NotFoundException("User doesn't exist!");
         }
-        return users
-                .stream()
-                .map(u -> mapper.map(u, UserWithoutPassDTO.class))
-                .collect(Collectors.toList());
+        return UserPageDTO
+                .builder()
+                .currentPage(pageN)
+                .totalPages(totalPages)
+                .users(users.map(u -> mapper.map(u, UserWithoutPassDTO.class)))
+                .build();
     }
 }

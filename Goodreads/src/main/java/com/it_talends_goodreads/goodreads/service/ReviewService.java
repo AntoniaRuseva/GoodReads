@@ -1,10 +1,7 @@
 package com.it_talends_goodreads.goodreads.service;
 
-import com.it_talends_goodreads.goodreads.model.DTOs.BookCommonInfoDTO;
+import com.it_talends_goodreads.goodreads.model.DTOs.*;
 
-import com.it_talends_goodreads.goodreads.model.DTOs.CreateReviewDTO;
-import com.it_talends_goodreads.goodreads.model.DTOs.ReturnReviewDTO;
-import com.it_talends_goodreads.goodreads.model.DTOs.ReturnReviewWithoutBookDTO;
 import com.it_talends_goodreads.goodreads.model.entities.Book;
 import com.it_talends_goodreads.goodreads.model.entities.Review;
 import com.it_talends_goodreads.goodreads.model.entities.User;
@@ -15,6 +12,9 @@ import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException
 import com.it_talends_goodreads.goodreads.model.repositories.CommentRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,10 +31,11 @@ public class ReviewService extends AbstractService {
     @Autowired
     private CommentRepository commentRepository;
 
+
     @Transactional
     public ReturnReviewDTO createReview(CreateReviewDTO dto, int userId, int bookId) {
         User u = getUserById(userId);
-        Book existBook = bookRepository.findById(bookId).orElseThrow(()->new BadRequestException("Book doesn't exist."));
+        Book existBook = bookRepository.findById(bookId).orElseThrow(() -> new BadRequestException("Book doesn't exist."));
         Review review = new Review();
         review.setBook(existBook);
         review.setWriter(u);
@@ -45,6 +46,7 @@ public class ReviewService extends AbstractService {
         returnReviewDTO.setBookInfo(mapper.map(existBook, BookCommonInfoDTO.class));
         return returnReviewDTO;
     }
+
     @Transactional
     public String deleteReview(int id, int userId) {
         Review rev = checkIfReviewExists(id);
@@ -54,6 +56,7 @@ public class ReviewService extends AbstractService {
         }
         return "You have deleted review with id: " + id;
     }
+
     @Transactional
     public ReturnReviewDTO updateReview(int id, int userId, CreateReviewDTO dto) {
         Review rev = checkIfReviewExists(id);
@@ -66,16 +69,26 @@ public class ReviewService extends AbstractService {
         return returnReviewDTO;
     }
 
-    public List<ReturnReviewWithoutBookDTO> getAllReviews(int id) {
-        List<Review> list = reviewRepository.getAllByBookId(id);
-        return list.stream()
-                .map(r -> mapper.map(r, ReturnReviewWithoutBookDTO.class))
-                .collect(Collectors.toList());
+    public ReviewPageDTO getAllReviews(int id, int pageN, int recordCount) {
+        Pageable pageable = PageRequest.of(pageN, recordCount);
+        Page<Review> list = reviewRepository.getAllByBookId(id, pageable);
+        if (list.isEmpty()) {
+            throw new NotFoundException("There is no reviews for this book!");
+        }
+        int totalPages = list.getTotalPages();
+        return ReviewPageDTO
+                .builder()
+                .currentPage(pageN)
+                .totalPages(totalPages)
+                .reviews(list
+                        .map(r -> mapper.map(r, ReturnReviewWithoutBookDTO.class)))
+                        .build();
     }
+
     @Transactional
     public ReturnReviewWithoutBookDTO likeReview(int id, int userId) {
         Review rev = checkIfReviewExists(id);
-        User u = userRepository.findById(userId).orElseThrow(()->new NotFoundException("User not found."));
+        User u = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found."));
         if (rev.getLikedBy().contains(u)) {
             rev.getLikedBy().remove(u);
         } else {
@@ -89,7 +102,7 @@ public class ReviewService extends AbstractService {
 
     private Review checkIfReviewExists(int id) {
         return reviewRepository.findById(id)
-                .orElseThrow(()->new NotFoundException("This review doesn't exist."));
+                .orElseThrow(() -> new NotFoundException("This review doesn't exist."));
     }
 
     private boolean authorized(int userId, Review rev) {
