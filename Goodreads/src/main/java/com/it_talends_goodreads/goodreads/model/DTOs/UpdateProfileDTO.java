@@ -27,5 +27,4 @@ public class UpdateProfileDTO {
     @Pattern(regexp=GENDER_REGEX,
              message = GENDER_MSG)
     private String gender;
-    private String profilePhoto;
 }
