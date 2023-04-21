@@ -2,6 +2,7 @@ package com.it_talends_goodreads.goodreads.service;
 
 
 import com.it_talends_goodreads.goodreads.model.DTOs.CommentContentDTO;
+import com.it_talends_goodreads.goodreads.model.DTOs.CommentPageDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.CommentWithoutOwnerDTO;
 import com.it_talends_goodreads.goodreads.model.DTOs.CreateCommentDTO;
 import com.it_talends_goodreads.goodreads.model.entities.Comment;
@@ -15,6 +16,9 @@ import org.slf4j.LoggerFactory;
 import com.it_talends_goodreads.goodreads.model.repositories.CommentRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,7 +64,7 @@ public class CommentService extends AbstractService {
                     .build();
         }
         commentRepository.save(comment);
-        CommentWithoutOwnerDTO result =  CommentWithoutOwnerDTO
+        CommentWithoutOwnerDTO result = CommentWithoutOwnerDTO
                 .builder()
                 .id(comment.getId())
                 .parentId(0)
@@ -79,7 +83,7 @@ public class CommentService extends AbstractService {
         if (authorized(userId, comment)) {
             comment.setContent(commentContentDTO.getContent());
             commentRepository.save(comment);
-            logger.info(String.format("User with id %d updated comment with id %d", userId,commentId));
+            logger.info(String.format("User with id %d updated comment with id %d", userId, commentId));
         }
         return CommentWithoutOwnerDTO
                 .builder()
@@ -97,7 +101,7 @@ public class CommentService extends AbstractService {
     private boolean authorized(int userId, Comment comment) {
         if (userId != comment.getWriter().getId()) {
             logger.warn(String.format("User with id %d is trying to update comment with id %d that does not belong to him",
-                    userId,comment.getId()));
+                    userId, comment.getId()));
             throw new UnauthorizedException("You are not allowed to make changes");
         }
         return true;
@@ -107,22 +111,23 @@ public class CommentService extends AbstractService {
         Comment comment = exists(id);
         if (authorized(userId, comment)) {
             logger.info(String.format("User with id %d deleted comment with id %d",
-                    userId,id));
+                    userId, id));
             commentRepository.deleteById(id);
         }
     }
 
-    public List<CommentWithoutOwnerDTO> getAllByReview(int id) {
+    public CommentPageDTO getAllByReview(int id, int pageN, int recordCount) {
+        Pageable pageable = PageRequest.of(pageN, recordCount);
         Review review = reviewRepository.findById(id).orElseThrow(() -> new NotFoundException("No such review"));
-        List<Comment> comments = commentRepository.findAllByReview(review);
-        return comments
-                .stream()
-                .map(c->CommentWithoutOwnerDTO
-                        .builder()
-                        .id(c.getId()).reviewId(id)
-                        .writerName(c.getWriter().getUserName())
-                        .content(c.getContent())
-                        .build())
-                .collect(Collectors.toList());
+        Page<Comment> com = commentRepository.findAllByReview(review, pageable);
+        int totalPages = com.getTotalPages();
+        return CommentPageDTO
+                .builder()
+                .currentPage(pageN)
+                .totalPages(totalPages)
+                .comments(com
+                        .map(c -> mapper.map(c, CommentWithoutOwnerDTO.class)))
+                .build();
+        
     }
 }

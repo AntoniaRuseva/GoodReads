@@ -24,7 +24,7 @@ public class Author {
     @Column(name = "name",nullable = false)
     private String name;
 
-    @ManyToOne
+    @ManyToOne()
     @JoinColumn(name = "user_id")
     private User user;
 

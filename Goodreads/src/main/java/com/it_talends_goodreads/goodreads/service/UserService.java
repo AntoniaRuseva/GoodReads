@@ -87,6 +87,13 @@ public class UserService extends AbstractService {
                 .filter(req->!req.isAccepted()&&!req.isRejected())
                 .map(req->mapper.map(req,FriendRequestDTO.class)).collect(Collectors.toList());
         returnUser.setFriendRequests(requests);
+        returnUser.setShelves(shelfRepository.findAllByUser(u).stream()
+                .map(s -> ShelfWithoutOwnerAndBooksDTO
+                        .builder()
+                        .id(s.getId())
+                        .name(s.getName())
+                        .build())
+                .collect(Collectors.toList()));
         return returnUser;
     }
 
@@ -165,7 +172,7 @@ public class UserService extends AbstractService {
     }
 
     public Set<UserWithoutPassDTO> getUserByBook(int bookId) {
-        Book book = bookRepository.findById(bookId).orElseThrow(() -> new BadRequestException("Book doesn't exist."));
+        bookRepository.findById(bookId).orElseThrow(() -> new BadRequestException("Book doesn't exist."));
         List<BooksShelves> booksShelves = booksShelvesRepository.getByBook_Id(bookId);
         Set<UserWithoutPassDTO> returnUsers = new HashSet<>();
         for (BooksShelves b : booksShelves) {
