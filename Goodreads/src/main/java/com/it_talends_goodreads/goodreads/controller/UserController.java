@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
 
+import javax.sql.DataSource;
 import java.util.List;
 import java.util.Set;
 
@@ -19,8 +20,7 @@ import java.util.Set;
 public class UserController extends AbstractController {
     @Autowired
     private UserService userService;
-    @Autowired
-    private JavaMailSender javaMailSender;
+
 
     @PostMapping("/users/login")
     public UserWithoutPassDTO login(@Valid @RequestBody LoginDTO loginData, HttpSession s) {
@@ -44,9 +44,9 @@ public class UserController extends AbstractController {
         return userService.register(registerData);
     }
 
-    @GetMapping("/users/{id}/{pageN}/{recordCount}")
-    public UserWithFriendRequestsDTO getById(@PathVariable int id,@RequestBody int pageN, int recordCount ) {
-        return userService.getById(id, pageN, recordCount);
+    @GetMapping("/users/{id}")
+    public UserWithFriendRequestsDTO getById(@PathVariable int id) {
+        return userService.getById(id);
     }
 
 

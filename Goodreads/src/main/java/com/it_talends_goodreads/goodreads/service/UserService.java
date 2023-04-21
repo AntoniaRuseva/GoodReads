@@ -20,10 +20,12 @@ import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.sql.DataSource;
 import java.security.SecureRandom;
 
 import java.util.*;
@@ -68,9 +70,9 @@ public class UserService extends AbstractService {
         User u = mapper.map(registerData, User.class);
 
         u.setPassword(encoder.encode(u.getPassword()));
-        Shelf shelf1 = Shelf.builder().user(u).name("Read").booksShelves(new ArrayList<>()).build();
-        Shelf shelf2 = Shelf.builder().user(u).name("Currently-reading").booksShelves(new ArrayList<>()).build();
-        Shelf shelf3 = Shelf.builder().user(u).name("To-read").booksShelves(new ArrayList<>()).build();
+        Shelf shelf1 = Shelf.builder().user(u).name("Read").booksShelves(new HashSet<>()).build();
+        Shelf shelf2 = Shelf.builder().user(u).name("Currently-reading").booksShelves(new HashSet<>()).build();
+        Shelf shelf3 = Shelf.builder().user(u).name("To-read").booksShelves(new HashSet<>()).build();
 
         userRepository.save(u);
         shelfRepository.save(shelf1);
@@ -81,14 +83,14 @@ public class UserService extends AbstractService {
 
     }
 
-    public UserWithFriendRequestsDTO getById(int id, int pageN, int recordCount) {
+    public UserWithFriendRequestsDTO getById(int id) {
         User u = getUserById(id);
         UserWithFriendRequestsDTO returnUser = mapper.map(u, UserWithFriendRequestsDTO.class);
         List<FriendRequestDTO> requests = friendRequestRepository.findAllByReceiverId(id).stream()
                 .filter(req -> !req.isAccepted() && !req.isRejected())
                 .map(req -> mapper.map(req, FriendRequestDTO.class)).collect(Collectors.toList());
         returnUser.setFriendRequests(requests);
-        returnUser.setShelves(shelfRepository.findAllByUser(u).stream()
+        returnUser.setShelves(shelfRepository.findAllByUserId(id).stream()
                 .map(s -> ShelfWithoutOwnerAndBooksDTO
                         .builder()
                         .id(s.getId())

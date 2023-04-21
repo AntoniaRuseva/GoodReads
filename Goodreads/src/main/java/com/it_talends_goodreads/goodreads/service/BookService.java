@@ -5,6 +5,7 @@ import com.it_talends_goodreads.goodreads.model.entities.*;
 
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
 import com.it_talends_goodreads.goodreads.model.repositories.BooksShelvesRepository;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -18,12 +19,8 @@ import com.it_talends_goodreads.goodreads.model.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-
 import org.slf4j.Logger;
-
-
 import java.util.stream.Collectors;
 
 @Service
@@ -99,37 +96,36 @@ public class BookService extends AbstractService {
                 .rating(String.format("%.2f", curRating))
                 .counter(curRateCounter).build();
     }
-
     public List<BookCommonInfoDTO> getBooksByFilters(BooksCharacteristicDTO booksCharacteristicDTO) {
         JPAQueryFactory query = new JPAQueryFactory(entityManager);
         QBook book = QBook.book;
-        List<Book> b = new ArrayList<>();
-        if (booksCharacteristicDTO.getAuthorName() != null) {
-            b = query.selectFrom(book).where(book.author.name.eq(booksCharacteristicDTO.getAuthorName())).fetch();
+        BooleanExpression baseQuery = book.isNotNull();
 
+        if (booksCharacteristicDTO.getAuthorName() != null) {
+            baseQuery = baseQuery.and(book.author.name.eq(booksCharacteristicDTO.getAuthorName()));
         }
         if (booksCharacteristicDTO.getCategories() != null) {
             int size = booksCharacteristicDTO.getCategories().size();
             for (int i = 0; i < size; i++) {
-                b = query.selectFrom(book).where(book.categories.contains(booksCharacteristicDTO.getCategories().get(i))).fetch();
+                baseQuery = baseQuery.and(book.categories.contains(booksCharacteristicDTO.getCategories().get(i)));
             }
         }
         if (booksCharacteristicDTO.getReleasedDate() != null) {
-            b = query.selectFrom(book).where(book.releasedDate.after(booksCharacteristicDTO.getReleasedDate())).fetch();
+            baseQuery = baseQuery.and(book.releasedDate.after(booksCharacteristicDTO.getReleasedDate()));
         }
         if (booksCharacteristicDTO.getLanguage() != null) {
-            b = query.selectFrom(book).where(book.language.eq(booksCharacteristicDTO.getLanguage())).fetch();
+            baseQuery = baseQuery.and(book.language.eq(booksCharacteristicDTO.getLanguage()));
         }
         if (booksCharacteristicDTO.getFormat() != null) {
-            b = query.selectFrom(book).where(book.format.eq(booksCharacteristicDTO.getFormat())).fetch();
+            baseQuery = baseQuery.and(book.format.eq(booksCharacteristicDTO.getFormat()));
         }
         if (booksCharacteristicDTO.getPages() != 0) {
-            b = query.selectFrom(book).where(book.pages.between(0, booksCharacteristicDTO.getPages())).fetch();
+            baseQuery = baseQuery.and(book.pages.between(0, booksCharacteristicDTO.getPages()));
         }
         if (booksCharacteristicDTO.getRating() != null) {
-            b = query.selectFrom(book).where(book.rating.between(1, booksCharacteristicDTO.getRating())).fetch();
+            baseQuery = baseQuery.and(book.rating.between(1, booksCharacteristicDTO.getRating()));
         }
+        List<Book> b = query.selectFrom(book).where(baseQuery).fetch();
         return b.stream().map(bk -> mapper.map(bk, BookCommonInfoDTO.class)).collect(Collectors.toList());
-
     }
 }

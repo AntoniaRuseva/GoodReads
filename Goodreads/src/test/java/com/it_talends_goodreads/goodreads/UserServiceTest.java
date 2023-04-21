@@ -12,20 +12,26 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import java.util.Optional;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest(classes = GoodreadsApplication.class)
 public class UserServiceTest {
-    @Mock
-    private UserRepository userRepository;
-
+    @Autowired
+    public JavaMailSender javaMailSender;
     @Autowired
     private UserService userService;
-
+    @Mock
+    private UserRepository userRepository;
+    public UserRepository userRepository() {
+        return mock(UserRepository.class);
+    }
     private UserRegisterDTO getValidRegisterData() {
         UserRegisterDTO registerData = new UserRegisterDTO();
         registerData.setEmail("test@example.com");
@@ -39,7 +45,7 @@ public class UserServiceTest {
         // Creating a user register DTO
 
         UserRegisterDTO registerData = new UserRegisterDTO();
-        registerData.setEmail("te@example.com");
+        registerData.setEmail("test3@example.com");
         registerData.setUsername("testuser");
         registerData.setPassword("testpassword");
         registerData.setConfirmPassword("testpassword");
@@ -81,10 +87,9 @@ public class UserServiceTest {
         // Calling the register method should throw a BadRequestException
         userService.register(registerData);
     }
-
+//
     @Test(expected = BadRequestException.class)
     public void testRegisterWeakPassword() {
-        // Creating a user register DTO with a weak password
         UserRegisterDTO registerData = getValidRegisterData();
         registerData.setPassword("weakPassword");
         registerData.setConfirmPassword("weakPassword");

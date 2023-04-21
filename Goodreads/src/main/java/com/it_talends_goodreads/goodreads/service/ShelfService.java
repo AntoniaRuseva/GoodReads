@@ -17,7 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.modelmapper.Converters.Collection.map;
 
 
 @Service
@@ -40,8 +43,7 @@ public class ShelfService extends AbstractService {
     }
 
     public List<ShelfWithOutUserDTO> getAllShelvesByUser(int userId) {
-        User user = getUserById(userId);
-        List<Shelf> list = shelfRepository.findAllByUser(user);
+        List<Shelf> list = shelfRepository.findAllByUserId(userId);
         return list.stream()
                 .map(s -> ShelfWithOutUserDTO
                         .builder()
@@ -93,6 +95,7 @@ public class ShelfService extends AbstractService {
             logger.info(String.format("User with id %d deleted shelf with id %d", userId, id));
         }
     }
+
     private Shelf exists(int id) {
         return shelfRepository.findById(id).orElseThrow(() -> new BadRequestException("No such shelf"));
     }
@@ -110,20 +113,41 @@ public class ShelfService extends AbstractService {
     public ShelfWithBookInfoDTO addBook(int shelfId, int bookId, int userId) {
         Shelf shelf = exists(shelfId);
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new NotFoundException("No such book"));
-
+        BooksShelves booksShelves = null;
         if (authorized(userId, shelf)) {
-            BooksShelves booksShelves = BooksShelves.builder().book(book).shelf(shelf).dateAdded(LocalDate.now()).build();
-            booksShelvesRepository.save(booksShelves);
-            logger.info(String.format("User with id %d added book with id %d to shelf with id %d", userId, bookId, shelfId));
+            booksShelves= BooksShelves
+                    .builder()
+                    .book(book)
+                    .shelf(shelf)
+                    .dateAdded(LocalDate.now())
+                    .build();
+
+            List<Shelf> shelves = shelfRepository.findAllByUserId(userId);
+            for (Shelf s : shelves) {
+                List<BooksShelves> optionalBookShelf = s.getBooksShelves().stream().filter(bs -> bs.getBook().equals(book)).toList();
+                if (!optionalBookShelf.isEmpty()) {
+                    throw new BadRequestException("You have this book already on shelf with id " + s.getId());
+                }
+            }
+            if (booksShelvesRepository.existBooksShelvesByBookAndShelf(shelfId, bookId) == 0) {
+                booksShelvesRepository.save(booksShelves);
+                logger.info(String.format("User with id %d added book with id %d to shelf with id %d", userId, bookId, shelfId));
+            }
         }
-        List<Book> books = shelf.getBooksShelves().stream().map(BooksShelves::getBook).toList();
+        shelf.getBooksShelves().add(booksShelves);
+        Set<Book> books = shelf.getBooksShelves().stream().map(BooksShelves::getBook).collect(Collectors.toSet());
         return ShelfWithBookInfoDTO
                 .builder()
                 .id(shelfId)
                 .name(shelf.getName())
                 .books(books
                         .stream()
-                        .map(b -> mapper.map(book, BookCommonInfoDTO.class))
+                        .map(b -> BookCommonInfoDTO
+                                .builder()
+                                .id(b.getId())
+                                .authorName(b.getAuthor().getName())
+                                .title(b.getTitle())
+                                .build())
                         .collect(Collectors.toList()))
                 .build();
     }
@@ -133,11 +157,12 @@ public class ShelfService extends AbstractService {
         Shelf shelf = exists(shelfId);
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new NotFoundException("No such book"));
         BooksShelves bookShelve = booksShelvesRepository
-                .findBooksShelvesByBookAndShelf(book, shelf).orElseThrow(() ->new NotFoundException("No such combination book-shelf"));
+                .findBooksShelvesByBookAndShelf(book, shelf).orElseThrow(() -> new NotFoundException("No such combination book-shelf"));
         if (authorized(userId, shelf)) {
             booksShelvesRepository.delete(bookShelve);
             logger.info(String.format("User with id %d remove book with id %d to shelf with id %d", userId, bookId, shelfId));
         }
+        shelf.getBooksShelves().remove(bookShelve);
         List<Book> books = shelf.getBooksShelves().stream().map(BooksShelves::getBook).toList();
         return ShelfWithBookInfoDTO
                 .builder()
@@ -145,7 +170,7 @@ public class ShelfService extends AbstractService {
                 .name(shelf.getName())
                 .books(books
                         .stream()
-                        .map(b -> mapper.map(book, BookCommonInfoDTO.class))
+                        .map(b -> mapper.map(b, BookCommonInfoDTO.class))
                         .collect(Collectors.toList()))
                 .build();
     }

@@ -11,7 +11,6 @@ import org.hibernate.validator.constraints.Length;
 @AllArgsConstructor
 public class CreateCommentDTO {
     private int parentId;
-
     @NonNull
     private int reviewId;
     @NonNull

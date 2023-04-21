@@ -22,9 +22,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
 
 @Service
 public class CommentService extends AbstractService {
@@ -41,7 +40,14 @@ public class CommentService extends AbstractService {
 
         Review review = reviewRepository.findById(createCommentDTO.getReviewId()).orElseThrow(() -> new NotFoundException("No such review"));
 
-        if (createCommentDTO.getParentId() != 0) {
+        if (createCommentDTO.getParentId() == 0) {
+            comment = Comment
+                    .builder()
+                    .writer(user)
+                    .review(review)
+                    .content(createCommentDTO.getContent())
+                    .build();
+        }else {
             Optional<Comment> optionalParent = commentRepository.findById(createCommentDTO.getParentId());
             if (optionalParent.isEmpty()) {
                 throw new NotFoundException("No such parent comment");
@@ -52,13 +58,6 @@ public class CommentService extends AbstractService {
                     .writer(user)
                     .review(review)
                     .parent(parent)
-                    .content(createCommentDTO.getContent())
-                    .build();
-        } else {
-            comment = Comment
-                    .builder()
-                    .writer(user)
-                    .review(review)
                     .content(createCommentDTO.getContent())
                     .build();
         }
@@ -74,6 +73,7 @@ public class CommentService extends AbstractService {
         logger.info(String.format("User with id %d wrote comment with id", userId, result.getId()));
         return result;
     }
+
 
     @Transactional
     public CommentWithoutOwnerDTO update(CommentContentDTO commentContentDTO, int userId, int commentId) {
@@ -127,6 +127,5 @@ public class CommentService extends AbstractService {
                 .comments(com
                         .map(c -> mapper.map(c, CommentWithoutOwnerDTO.class)))
                 .build();
-        
     }
 }

@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface ShelfRepository extends JpaRepository<Shelf,Integer> {
-    List<Shelf> findAllByUser(User user);
+    List<Shelf> findAllByUserId(int userId);
     Optional<Shelf> findById(int id);
 
     Optional<Shelf> findByUserAndName(User user, String name);

@@ -47,7 +47,7 @@ public class User {
     @Column(name = "e_mail", nullable = false)
     private String email;
     @OneToMany(mappedBy = "id")
-    private List<Shelf> shelves;
+    private Set<Shelf> shelves;
 
     @Column(name = "profile_photo")
     private String profilePhoto;

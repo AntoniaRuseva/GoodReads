@@ -6,7 +6,10 @@ import com.it_talends_goodreads.goodreads.model.repositories.BookRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+
+import javax.sql.DataSource;
 
 @Service
 public abstract class AbstractService {
@@ -18,5 +21,15 @@ public abstract class AbstractService {
     protected BookRepository bookRepository;
     protected User getUserById(int id) {
         return userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found!"));
+    }
+    private JdbcTemplate jdbcTemplate;
+
+
+    public void setUserRepository(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    public void setDataSource(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 }
