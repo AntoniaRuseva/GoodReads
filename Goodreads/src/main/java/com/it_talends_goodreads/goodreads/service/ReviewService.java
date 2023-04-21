@@ -12,6 +12,7 @@ import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
 import com.it_talends_goodreads.goodreads.model.exceptions.NotFoundException;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
 
+import com.it_talends_goodreads.goodreads.model.repositories.CommentRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,9 @@ import java.util.stream.Collectors;
 public class ReviewService extends AbstractService {
     @Autowired
     private ReviewRepository reviewRepository;
+    @Autowired
+    private CommentRepository commentRepository;
+
     @Transactional
     public ReturnReviewDTO createReview(CreateReviewDTO dto, int userId, int bookId) {
         User u = getUserById(userId);
@@ -45,6 +49,7 @@ public class ReviewService extends AbstractService {
     public String deleteReview(int id, int userId) {
         Review rev = checkIfReviewExists(id);
         if (authorized(id, rev)) {
+            commentRepository.removeCommentsByReview(rev);
             reviewRepository.deleteById(id);
         }
         return "You have deleted review with id: " + id;

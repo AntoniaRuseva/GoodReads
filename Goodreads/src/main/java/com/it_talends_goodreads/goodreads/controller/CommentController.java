@@ -37,7 +37,7 @@ public class CommentController extends AbstractController {
     }
 
     @GetMapping("/comments/reviews/{id}")
-    public List<CommentWithoutOwnerDTO> getAllByReview(@PathVariable int id) {
-        return commentService.getAllByReview(id);
+    public List<CommentWithoutOwnerDTO> getAllByReview(@PathVariable int id, int pageN, int recordCount) {
+        return commentService.getAllByReview(id, pageN, recordCount);
     }
 }
