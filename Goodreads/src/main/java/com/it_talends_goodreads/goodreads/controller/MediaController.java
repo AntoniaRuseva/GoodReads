@@ -25,13 +25,13 @@ public class MediaController extends AbstractController {
     }
 
     @GetMapping("/media/{fileName}")
-    public void downloadUserPicture(@PathVariable("fileName") String fileName, HttpServletResponse resp) throws IOException {
+    public void downloadUserPicture(@PathVariable String fileName, HttpServletResponse resp) throws IOException {
         File f = mediaService.downloadUserPicture(fileName);
         Files.copy(f.toPath(), resp.getOutputStream());
     }
 
-    @GetMapping("/media/{bookName}")
-    public void downloadBookPicture(@PathVariable("bookName") String bookName, HttpServletResponse resp) throws IOException {
+    @GetMapping("/media/books/{bookName}")
+    public void downloadBookPicture(@PathVariable String bookName, HttpServletResponse resp) throws IOException {
         File f = mediaService.downloadBookPicture(bookName);
         Files.copy(f.toPath(), resp.getOutputStream());
     }
