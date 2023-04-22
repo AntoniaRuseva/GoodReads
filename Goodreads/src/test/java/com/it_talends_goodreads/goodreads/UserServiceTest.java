@@ -9,14 +9,19 @@ import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException
 import com.it_talends_goodreads.goodreads.model.repositories.ShelfRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.UserRepository;
 import com.it_talends_goodreads.goodreads.service.UserService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -26,17 +31,16 @@ import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = GoodreadsApplication.class)
+@Transactional
 public class UserServiceTest {
-    @InjectMocks
+    @Autowired
     private UserService userService;
-    @Mock
+    @Autowired
     public ModelMapper mapper;
-    @Mock
+    @Autowired
     private BCryptPasswordEncoder encoder;
-    @Mock
+    @Autowired
     private UserRepository userRepository;
-    @Mock
-    private ShelfRepository shelfRepository;
 
     public UserRepository userRepository() {
         return mock(UserRepository.class);
@@ -62,11 +66,9 @@ public class UserServiceTest {
 
     @Test(expected = BadRequestException.class)
     public void testRegisterEmailAlreadyExists() {
-        // Mocking the repository to return true when checking if the email already exists
-        when(userRepository.existsByEmail(anyString())).thenReturn(true);
-        // Creating a user register DTO with a strong password
         UserRegisterDTO registerData = getValidRegisterData();
-        // Calling the register method should throw a BadRequestException
+        userService.register(registerData);
+        //Try to register an existing user again
         userService.register(registerData);
     }
 
@@ -74,31 +76,15 @@ public class UserServiceTest {
     @Test
     public void testLoginSuccess() {
         // Arrange
-        String email = "test@example.com";
-        String password = "password";
-        User user = new User();
-        user.setId(1);
-        user.setEmail(email);
-        user.setPassword(encoder.encode(password));
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(encoder.matches(password, user.getPassword())).thenReturn(true);
+        UserRegisterDTO user = getValidRegisterData();
+        userService.register(user);
 
-        UserWithoutPassDTO userWithoutPassDTO = new UserWithoutPassDTO();
-        userWithoutPassDTO.setId(user.getId());
-        userWithoutPassDTO.setEmail(user.getEmail());
-        when(mapper.map(user, UserWithoutPassDTO.class)).thenReturn(userWithoutPassDTO);
-
-        LoginDTO loginData = new LoginDTO();
-        loginData.setEmail(email);
-        loginData.setPassword(password);
-        // Act
+        LoginDTO loginData = mapper.map(user,LoginDTO.class);
         UserWithoutPassDTO result = userService.login(loginData);
         // Assert
-        assertEquals(user.getId(), result.getId());
+        assertTrue(result.getId() != 0);
         assertEquals(user.getEmail(), result.getEmail());
-        verify(userRepository, times(1)).findByEmail(email);
-        verify(encoder, times(1)).matches(password, user.getPassword());
-        verify(mapper, times(1)).map(user, UserWithoutPassDTO.class);
+        assertEquals(user.getUsername(), result.getUsername());
     }
 
     @Test(expected = UnauthorizedException.class)
@@ -107,61 +93,31 @@ public class UserServiceTest {
         String email = "test@example.com";
         LoginDTO loginData = new LoginDTO();
         loginData.setEmail(email);
-        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
-        // Act
         userService.login(loginData);
     }
 
     @Test(expected = UnauthorizedException.class)
     public void testLoginUnauthorized() {
-        // Arrange
-        String email = "test@example.com";
-        String password = "password";
-        User user = new User();
-        user.setEmail(email);
-        user.setPassword(encoder.encode("wrong_password"));
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(encoder.matches(password, user.getPassword())).thenReturn(false);
+        UserRegisterDTO userRegisterDTO = getValidRegisterData();
 
         LoginDTO loginData = new LoginDTO();
-        loginData.setEmail(email);
-        loginData.setPassword(password);
-        // Act
+        loginData.setEmail(userRegisterDTO.getEmail());
+        loginData.setPassword(userRegisterDTO.getPassword() + 1);
+        userService.register(userRegisterDTO);
         userService.login(loginData);
     }
 
     @Test
     public void testChangePassSuccess() {
-        // Arrange
-        int userId = 1;
-        String oldPassword = "old_password";
+        String oldPassword = "123aaaA$";
         String newPassword = "new_password";
-        String confirmNewPassword = "new_password";
         ChangePassDTO changePassDTO = new ChangePassDTO();
         changePassDTO.setCurrentPass(oldPassword);
         changePassDTO.setNewPass(newPassword);
-        changePassDTO.setConfirmNewPass(confirmNewPassword);
-
-        User user = new User();
-        user.setId(userId);
-        user.setPassword(encoder.encode(oldPassword));
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(encoder.encode(newPassword)).thenReturn("encoded_new_password");
-
-        User updatedUser = new User();
-        updatedUser.setId(userId);
-        updatedUser.setPassword("encoded_new_password");
-        when(userRepository.save(user)).thenReturn(updatedUser);
-
-        UserWithoutPassDTO expected = new UserWithoutPassDTO();
-        expected.setId(userId);
-        expected.setEmail(user.getEmail());
-        when(mapper.map(updatedUser, UserWithoutPassDTO.class)).thenReturn(expected);
-        // Act
-        UserWithoutPassDTO result = userService.changePass(changePassDTO, userId);
-        // Assert
-        assertEquals(expected.getId(), result.getId());
-        assertEquals(expected.getEmail(), result.getEmail());
+        changePassDTO.setConfirmNewPass(newPassword);
+        UserWithoutPassDTO u = userService.register(getValidRegisterData());
+        userService.changePass(changePassDTO, u.getId());
+        assertTrue(encoder.matches(newPassword, userRepository.findById(u.getId()).get().getPassword()));
     }
 
     @Test(expected = BadRequestException.class)
@@ -181,36 +137,22 @@ public class UserServiceTest {
 
     @Test(expected = NotFoundException.class)
     public void testChangePassUserNotFound() {
-        // Arrange
-        int userId = 1;
-        String oldPassword = "old_password";
+        String oldPassword = "123aaaA$";
         String newPassword = "new_password";
         String confirmNewPassword = "new_password";
         ChangePassDTO changePassDTO = new ChangePassDTO();
         changePassDTO.setCurrentPass(oldPassword);
         changePassDTO.setNewPass(newPassword);
         changePassDTO.setConfirmNewPass(confirmNewPassword);
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-        // Act
-        userService.changePass(changePassDTO, userId);
+        userService.register(getValidRegisterData());
+        userService.changePass(changePassDTO, 2);
     }
     @Test
     public void testDeleteProfile() {
-        // Setup
-        int userId = 1;
-        User user = new User();
-        user.setId(userId);
-        user.setEmail("test@example.com");
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(user)).thenReturn(user);
-
-        // Exercise
-        userService.deleteProfile(userId);
-
-        // Verify
-        assertEquals("deleted", user.getEmail());
-        verify(userRepository, times(1)).findById(userId);
-        verify(userRepository, times(1)).save(user);
+        UserWithoutPassDTO user = userService.register(getValidRegisterData());
+        userService.deleteProfile(user.getId());
+        UserWithFriendRequestsDTO a = userService.getById(user.getId());
+        assertEquals("deleted", a.getEmail());
     }
 }
 
