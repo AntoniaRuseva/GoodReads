@@ -31,8 +31,8 @@ CREATE TABLE IF NOT EXISTS goodreads.authors (
 
 
 CREATE TABLE IF NOT EXISTS goodreads.books (
-                                               id INT NOT NULL AUTO_INCREMENT,
-                                               cover_photo VARCHAR(255) NULL DEFAULT NULL,
+    id INT NOT NULL AUTO_INCREMENT,
+    cover_photo VARCHAR(255) NULL DEFAULT NULL,
     description TEXT NULL DEFAULT NULL,
     format TEXT NOT NULL,
     isbn VARCHAR(255) NULL DEFAULT NULL,
@@ -50,15 +50,15 @@ CREATE TABLE IF NOT EXISTS goodreads.books (
 
 
 CREATE TABLE IF NOT EXISTS goodreads.categories (
-                                                    id INT NOT NULL AUTO_INCREMENT,
-                                                    name VARCHAR(255) NOT NULL,
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
     PRIMARY KEY (id));
 
 
 CREATE TABLE IF NOT EXISTS goodreads.books_categories (
-                                                          book_id INT NOT NULL,
-                                                          category_id INT NOT NULL,
-                                                          PRIMARY KEY (book_id, category_id),
+    book_id INT NOT NULL,
+    category_id INT NOT NULL,
+    PRIMARY KEY (book_id, category_id),
     CONSTRAINT FK4klp9o273ej1ywgmie14rvdx3
     FOREIGN KEY (category_id)
     REFERENCES goodreads.categories (id),
@@ -68,8 +68,8 @@ CREATE TABLE IF NOT EXISTS goodreads.books_categories (
 
 
 CREATE TABLE IF NOT EXISTS goodreads.shelves (
-                                                 id INT NOT NULL AUTO_INCREMENT,
-                                                 name VARCHAR(255) NOT NULL,
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
     user_id INT NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT FK26j0prhaxbvf2c3mf9f2p5dck
@@ -77,11 +77,11 @@ CREATE TABLE IF NOT EXISTS goodreads.shelves (
     REFERENCES goodreads.users (id));
 
 CREATE TABLE IF NOT EXISTS goodreads.books_shelves (
-                                                       id INT NOT NULL AUTO_INCREMENT,
-                                                       date_added DATE NOT NULL,
-                                                       book_id INT NOT NULL,
-                                                       shelf_id INT NOT NULL,
-                                                       PRIMARY KEY (id),
+    id INT NOT NULL AUTO_INCREMENT,
+    date_added DATE NOT NULL,
+    book_id INT NOT NULL,
+    shelf_id INT NOT NULL,
+    PRIMARY KEY (id),
     CONSTRAINT FK4w1y6uda57ga9r5w94rj12v4s
     FOREIGN KEY (shelf_id)
     REFERENCES goodreads.shelves (id),
@@ -91,23 +91,23 @@ CREATE TABLE IF NOT EXISTS goodreads.books_shelves (
 
 
 CREATE TABLE IF NOT EXISTS goodreads.challenges (
-                                                    id INT NOT NULL AUTO_INCREMENT,
-                                                    date_added DATE NOT NULL,
-                                                    number INT NOT NULL,
-                                                    user_fk INT NOT NULL,
-                                                    PRIMARY KEY (id),
+    id INT NOT NULL AUTO_INCREMENT,
+    date_added DATE NOT NULL,
+    number INT NOT NULL,
+    user_fk INT NOT NULL,
+    PRIMARY KEY (id),
     CONSTRAINT FKo8ue1y8ut48yr9dy6ol1c172g
     FOREIGN KEY (user_fk)
     REFERENCES goodreads.users (id));
 
 
 CREATE TABLE IF NOT EXISTS goodreads.reviews (
-                                                 id INT NOT NULL AUTO_INCREMENT,
-                                                 content TEXT NOT NULL,
-                                                 date DATE NOT NULL,
-                                                 book_id INT NOT NULL,
-                                                 writer_id INT NOT NULL,
-                                                 PRIMARY KEY (id),
+    id INT NOT NULL AUTO_INCREMENT,
+    content TEXT NOT NULL,
+    date DATE NOT NULL,
+    book_id INT NOT NULL,
+    writer_id INT NOT NULL,
+    PRIMARY KEY (id),
     CONSTRAINT FK6a9k6xvev80se5rreqvuqr7f9
     FOREIGN KEY (book_id)
     REFERENCES goodreads.books (id),
@@ -117,12 +117,12 @@ CREATE TABLE IF NOT EXISTS goodreads.reviews (
 
 
 CREATE TABLE IF NOT EXISTS goodreads.comments (
-                                                  id INT NOT NULL AUTO_INCREMENT,
-                                                  content TEXT NOT NULL,
-                                                  parent_id INT NULL DEFAULT NULL,
-                                                  review_id INT NOT NULL,
-                                                  writer_id INT NOT NULL,
-                                                  PRIMARY KEY (id),
+    id INT NOT NULL AUTO_INCREMENT,
+    content TEXT NOT NULL,
+    parent_id INT NULL DEFAULT NULL,
+    review_id INT NOT NULL,
+    writer_id INT NOT NULL,
+    PRIMARY KEY (id),
     CONSTRAINT FKdpo60i7auk5cudv7kkny8jrqb
     FOREIGN KEY (review_id)
     REFERENCES goodreads.reviews (id),
@@ -135,8 +135,8 @@ CREATE TABLE IF NOT EXISTS goodreads.comments (
 
 
 CREATE TABLE IF NOT EXISTS goodreads.friend_request (
-                                                        id INT NOT NULL AUTO_INCREMENT,
-                                                        accepted INT NOT NULL,
+    id INT NOT NULL AUTO_INCREMENT,
+    accepted INT NOT NULL,
     rejected INT NOT NULL,
     receiver_id INT NULL DEFAULT NULL,
     requester_id INT NULL DEFAULT NULL,
@@ -150,9 +150,9 @@ CREATE TABLE IF NOT EXISTS goodreads.friend_request (
 
 
 CREATE TABLE IF NOT EXISTS goodreads.user_likes_reviews (
-                                                            user_id INT NOT NULL,
-                                                            reviews_id INT NOT NULL,
-                                                            PRIMARY KEY (user_id, reviews_id),
+    user_id INT NOT NULL,
+    reviews_id INT NOT NULL,
+    PRIMARY KEY (user_id, reviews_id),
     CONSTRAINT FK8i4nssxmsdqh0f8kalm1qfxj5
     FOREIGN KEY (user_id)
     REFERENCES goodreads.reviews (id),
@@ -163,10 +163,9 @@ CREATE TABLE IF NOT EXISTS goodreads.user_likes_reviews (
 
 
 CREATE TABLE IF NOT EXISTS goodreads.user_rate_book (
-                                                        user_id INT NOT NULL,
-                                                        book_id INT NOT NULL,
-                                                        PRIMARY KEY (user_id, book_id),
-
+    user_id INT NOT NULL,
+    book_id INT NOT NULL,
+    PRIMARY KEY (user_id, book_id),
     CONSTRAINT FK2amyi3d1w0c6m9oa7ydngj9fj
     FOREIGN KEY (user_id)
     REFERENCES goodreads.users (id),
@@ -176,9 +175,9 @@ CREATE TABLE IF NOT EXISTS goodreads.user_rate_book (
 
 
 CREATE TABLE IF NOT EXISTS goodreads.users_followers (
-                                                         user_id INT NOT NULL,
-                                                         followers_id INT NOT NULL,
-                                                         PRIMARY KEY (user_id, followers_id),
+    user_id INT NOT NULL,
+    followers_id INT NOT NULL,
+    PRIMARY KEY (user_id, followers_id),
     CONSTRAINT FK84bqk8303ipwj1aqwsrpkr86u
     FOREIGN KEY (user_id)
     REFERENCES goodreads.users (id),
@@ -188,9 +187,9 @@ CREATE TABLE IF NOT EXISTS goodreads.users_followers (
 
 
 CREATE TABLE IF NOT EXISTS goodreads.users_friends (
-                                                       user_id INT NOT NULL,
-                                                       friend_id INT NOT NULL,
-                                                       PRIMARY KEY (user_id, friend_id),
+    user_id INT NOT NULL,
+    friend_id INT NOT NULL,
+    PRIMARY KEY (user_id, friend_id),
     CONSTRAINT FKetin2ga6w0oln69xfef2wwjqw
     FOREIGN KEY (friend_id)
     REFERENCES goodreads.users (id),
