@@ -1,6 +1,6 @@
 # GoodReads
 IT Talents - Final Project
-This is our final project from the IT Talents Trainig Camp. It is a RESTful Spring Web API for the backend of the Goodreads site.The original site is a popular social networking site for book lovers. Goodreads allows users to connect with other users, discover new books, and share their thoughts and opinions on books. Some of the main functionalities of Goodreads that we have implemented in our project include:
+This is a RESTful Spring Web API for the backend of the Goodreads site.The original site is a popular social networking site for book lovers. Goodreads allows users to connect with other users, discover new books, and share their thoughts and opinions on books. Some of the main functionalities of Goodreads that we have implemented in our project include:
 Friends: Users can make friends with other users and see what their friends are reading, reviews and challenges.
 Reading: Users can add books to their "Want to Read", "Currently Reading", and "Read" shelves, as well as create custom shelves for other categories, such as "Favorites" or "Classics."
 Challenges: Goodreads allows users to set reading goals for themselves, such as a certain number of books to read in a year.
