@@ -14,8 +14,7 @@ import static com.it_talends_goodreads.goodreads.Util.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserRegisterDTO {
-    @Email(message = "Invalid email")
-    private String email;
+
     @NotNull
     private String username;
 
@@ -30,8 +29,9 @@ public class UserRegisterDTO {
     @Pattern(regexp = LINK_TO_SITE_REGEX,
             message = LINK_TO_SITE_MSG)
     private String linkToSite;
-
     @Pattern(regexp = GENDER_REGEX, message = GENDER_MSG)
     private String gender;
+    @Email(message = "Invalid email")
+    private String email;
 
 }

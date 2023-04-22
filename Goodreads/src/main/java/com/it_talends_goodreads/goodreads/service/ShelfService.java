@@ -16,11 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.modelmapper.Converters.Collection.map;
 
 
 @Service
@@ -74,7 +71,6 @@ public class ShelfService extends AbstractService {
                 .build();
     }
 
-    @Transactional
     public ShelfWithoutOwnerAndBooksDTO update(int id, int userId, CreateShelfDTO createShelfDTO) {
         Shelf shelf = exists(id);
         if (authorized(userId, shelf)) {
@@ -102,14 +98,13 @@ public class ShelfService extends AbstractService {
 
     private boolean authorized(int userId, Shelf shelf) {
         if (userId != shelf.getUser().getId()) {
-            logger.info(String.format("User with id %d is trying to make changes on shelf with id %d, " +
+            throw new UnauthorizedException(String.format("User with id %d is trying to make changes on shelf with id %d, " +
                     "that doesn't belong to him", userId, shelf.getId()));
-            throw new UnauthorizedException("You are not allowed to make changes");
         }
         return true;
     }
 
-    @Transactional
+
     public ShelfWithBookInfoDTO addBook(int shelfId, int bookId, int userId) {
         Shelf shelf = exists(shelfId);
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new NotFoundException("No such book"));
@@ -152,7 +147,7 @@ public class ShelfService extends AbstractService {
                 .build();
     }
 
-    @Transactional
+
     public ShelfWithBookInfoDTO removeBook(int shelfId, int bookId, int userId) {
         Shelf shelf = exists(shelfId);
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new NotFoundException("No such book"));

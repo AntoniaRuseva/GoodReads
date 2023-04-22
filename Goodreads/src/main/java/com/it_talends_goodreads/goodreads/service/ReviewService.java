@@ -19,9 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -32,7 +29,6 @@ public class ReviewService extends AbstractService {
     private CommentRepository commentRepository;
 
 
-    @Transactional
     public ReturnReviewDTO createReview(CreateReviewDTO dto, int userId, int bookId) {
         User u = getUserById(userId);
         Book existBook = bookRepository.findById(bookId).orElseThrow(() -> new BadRequestException("Book doesn't exist."));
@@ -57,7 +53,7 @@ public class ReviewService extends AbstractService {
         return "You have deleted review with id: " + id;
     }
 
-    @Transactional
+
     public ReturnReviewDTO updateReview(int id, int userId, CreateReviewDTO dto) {
         Review rev = checkIfReviewExists(id);
         if (authorized(userId, rev)) {
@@ -85,7 +81,6 @@ public class ReviewService extends AbstractService {
                         .build();
     }
 
-    @Transactional
     public ReturnReviewWithoutBookDTO likeReview(int id, int userId) {
         Review rev = checkIfReviewExists(id);
         User u = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found."));

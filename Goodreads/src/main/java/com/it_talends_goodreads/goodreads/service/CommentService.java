@@ -20,7 +20,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 
@@ -32,7 +31,6 @@ public class CommentService extends AbstractService {
     private CommentRepository commentRepository;
     private static final Logger logger = LoggerFactory.getLogger(CommentService.class);
 
-    @Transactional
     public CommentWithoutOwnerDTO create(CreateCommentDTO createCommentDTO, int userId) {
         User user = getUserById(userId);
         Comment comment;
@@ -74,7 +72,6 @@ public class CommentService extends AbstractService {
     }
 
 
-    @Transactional
     public CommentWithoutOwnerDTO update(CommentContentDTO commentContentDTO, int userId, int commentId) {
 
         Comment comment = exists(commentId);
@@ -98,9 +95,8 @@ public class CommentService extends AbstractService {
 
     private boolean authorized(int userId, Comment comment) {
         if (userId != comment.getWriter().getId()) {
-            logger.warn(String.format("User with id %d is trying to update comment with id %d that does not belong to him",
+            throw new UnauthorizedException(String.format("User with id %d is trying to update comment with id %d that does not belong to him",
                     userId, comment.getId()));
-            throw new UnauthorizedException("You are not allowed to make changes");
         }
         return true;
     }

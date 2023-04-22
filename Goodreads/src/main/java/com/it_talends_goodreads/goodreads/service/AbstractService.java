@@ -22,14 +22,4 @@ public abstract class AbstractService {
     protected User getUserById(int id) {
         return userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found!"));
     }
-    private JdbcTemplate jdbcTemplate;
-
-
-    public void setUserRepository(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
-    public void setDataSource(DataSource dataSource) {
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
-    }
 }

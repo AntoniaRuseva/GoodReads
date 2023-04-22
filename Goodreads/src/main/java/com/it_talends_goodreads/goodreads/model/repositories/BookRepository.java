@@ -14,8 +14,4 @@ import java.util.Optional;
 public interface BookRepository extends JpaRepository<Book,Integer> {
         Optional<Book> findByRateByd(User user);
 
-        @Query(value = "SELECT COUNT(*) FROM books JOIN books_shelves AS bs ON books.id = bs.book_id " +
-                "JOIN shelves ON bs.shelf_id = shelves.id JOIN users ON users.id = shelves.user_id" +
-                " WHERE users.id = ?1 AND shelves.name = 'Read' AND YEAR(bs.date_added) = ?2", nativeQuery = true)
-        int findAllBooksForChallenge(int userId, int year);
 }
