@@ -98,9 +98,8 @@ public class CommentService extends AbstractService {
 
     private boolean authorized(int userId, Comment comment) {
         if (userId != comment.getWriter().getId()) {
-            logger.warn(String.format("User with id %d is trying to update comment with id %d that does not belong to him",
+            throw new UnauthorizedException(String.format("User with id %d is trying to update comment with id %d that does not belong to him",
                     userId, comment.getId()));
-            throw new UnauthorizedException("You are not allowed to make changes");
         }
         return true;
     }

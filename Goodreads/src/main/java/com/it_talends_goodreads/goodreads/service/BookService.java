@@ -80,8 +80,8 @@ public class BookService extends AbstractService {
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new NotFoundException("No such book"));
         User user = getUserById(userId);
         if (bookRepository.findByRateByd(user).isPresent()) {
-            logger.info(String.format("User with id  %d can't rate book with id %d, because already did it", userId, bookId, bookRateDTO.getRating()));
-            throw new UnauthorizedException("you have already rated this book");
+            throw new UnauthorizedException(String.format("User with id  %d can't rate book with id %d, because already did it",
+                    userId, bookId, bookRateDTO.getRating()));
         }
         double curRating = book.getRating();
         int curRateCounter = book.getRateCounter();

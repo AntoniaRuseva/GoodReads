@@ -102,9 +102,8 @@ public class ShelfService extends AbstractService {
 
     private boolean authorized(int userId, Shelf shelf) {
         if (userId != shelf.getUser().getId()) {
-            logger.info(String.format("User with id %d is trying to make changes on shelf with id %d, " +
+            throw new UnauthorizedException(String.format("User with id %d is trying to make changes on shelf with id %d, " +
                     "that doesn't belong to him", userId, shelf.getId()));
-            throw new UnauthorizedException("You are not allowed to make changes");
         }
         return true;
     }
