@@ -2,32 +2,23 @@ package com.it_talends_goodreads.goodreads;
 
 
 import com.it_talends_goodreads.goodreads.model.DTOs.*;
-import com.it_talends_goodreads.goodreads.model.entities.User;
 import com.it_talends_goodreads.goodreads.model.exceptions.BadRequestException;
 import com.it_talends_goodreads.goodreads.model.exceptions.NotFoundException;
 import com.it_talends_goodreads.goodreads.model.exceptions.UnauthorizedException;
-import com.it_talends_goodreads.goodreads.model.repositories.ShelfRepository;
 import com.it_talends_goodreads.goodreads.model.repositories.UserRepository;
 import com.it_talends_goodreads.goodreads.service.UserService;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = GoodreadsApplication.class)
