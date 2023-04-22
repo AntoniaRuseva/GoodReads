@@ -1,2 +1,2 @@
 # GoodReads
-IT Talends - Final Project
+IT Talents - Final Project
