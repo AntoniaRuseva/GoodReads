@@ -13,5 +13,4 @@ import java.util.Optional;
 public interface ReviewRepository extends JpaRepository<Review, Integer> {
     Optional<Review> findById(int id);
     Page<Review> getAllByBookId(int id, Pageable pageable);
-    int countById(int id);
 }

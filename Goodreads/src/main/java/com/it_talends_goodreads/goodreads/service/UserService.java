@@ -26,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,7 +42,7 @@ public class UserService extends AbstractService {
     private FriendRequestRepository friendRequestRepository;
     @Autowired
     private JavaMailSender javaMailSender;
-   @PersistenceContext
+    @PersistenceContext
     private EntityManager entityManager;
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
@@ -98,7 +99,7 @@ public class UserService extends AbstractService {
         return returnUser;
     }
 
-    @Transactional
+
     public UserWithoutPassDTO changePass(ChangePassDTO updateData, int userId) {
         if (!updateData.getNewPass().equals(updateData.getConfirmNewPass())) {
             logger.info("User entering mismatching passwords.");
@@ -112,11 +113,10 @@ public class UserService extends AbstractService {
         return mapper.map(u, UserWithoutPassDTO.class);
     }
 
-    @Transactional
-    public UserPageDTO getAll(int pageN,int recordCount) {
-        Pageable pageable= PageRequest.of(pageN,recordCount);
-        Page<User> list =userRepository.findAll(pageable);
-        int totalPages=list.getTotalPages();
+    public UserPageDTO getAll(int pageN, int recordCount) {
+        Pageable pageable = PageRequest.of(pageN, recordCount);
+        Page<User> list = userRepository.findAll(pageable);
+        int totalPages = list.getTotalPages();
         return UserPageDTO
                 .builder()
                 .currentPage(pageN)
@@ -125,15 +125,13 @@ public class UserService extends AbstractService {
                 .build();
     }
 
-    @Transactional
     public void deleteProfile(int userId) {
         User user = getUserById(userId);
-        shelfRepository.deleteAllByUser(user);
-        userRepository.delete(user);
+        user.setEmail("deleted");
+        userRepository.save(user);
         logger.info(String.format("User with id %d deleted profile successfully.", userId));
     }
 
-    @Transactional
     public int follow(int followerId, int followedId) {
         if (followedId == followerId) {
             throw new UnauthorizedException("You cannot follow yourself.");
@@ -146,7 +144,7 @@ public class UserService extends AbstractService {
         return followed.getFollowers().size();
     }
 
-    @Transactional
+
     public void unfollow(int unfollowId, int userId) {
         User user = getUserById(userId);
         User unfollowed = getUserById(unfollowId);
@@ -158,7 +156,7 @@ public class UserService extends AbstractService {
         logger.info(String.format("User with id %d is no longer following user with id %d.", userId, unfollowId));
     }
 
-    @Transactional
+
     public UserWithoutPassDTO updateProfile(UpdateProfileDTO dto, int userId) {//
         User u = getUserById(userId);
         u.setFirstName(dto.getFirstName());
@@ -251,7 +249,7 @@ public class UserService extends AbstractService {
         return "User " + requesterId + " and user " + receiverId + " are now friends.";
     }
 
-    @Transactional
+
     public String rejectFriendRequest(int userId, int friendId) {
         User friend = getUserById(friendId);
         User user = getUserById(userId);
@@ -324,8 +322,7 @@ public class UserService extends AbstractService {
             logger.info(String.format("New temporary password send to user with id %d.", u.getId()));
             new Thread(() -> javaMailSender.send(mimeMessage)).start();
         } catch (RuntimeException e) {
-            logger.info("Problem with sending email for password change");
-            throw new NotFoundException("Problem with sending the email");
+            throw new NotFoundException("Problem with sending email for password change. The receiver is : " + email.getEmail());
         }
     }
 
@@ -368,10 +365,10 @@ public class UserService extends AbstractService {
         return shuffled.toString();
     }
 
-    public UserPageDTO getAllByUserName(String userName,int pageN,int recordCount) {
-        Pageable pageable=PageRequest.of(pageN,recordCount);
-        Page<User> users = userRepository.findAllByUserNameContaining(userName,pageable);
-        int totalPages=users.getTotalPages();
+    public UserPageDTO getAllByUserName(String userName, int pageN, int recordCount) {
+        Pageable pageable = PageRequest.of(pageN, recordCount);
+        Page<User> users = userRepository.findAllByUserNameContaining(userName, pageable);
+        int totalPages = users.getTotalPages();
         if (users.isEmpty()) {
             throw new NotFoundException("User doesn't exist!");
         }

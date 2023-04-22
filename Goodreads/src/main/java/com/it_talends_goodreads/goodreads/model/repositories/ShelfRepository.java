@@ -12,8 +12,6 @@ import java.util.Optional;
 public interface ShelfRepository extends JpaRepository<Shelf,Integer> {
     List<Shelf> findAllByUserId(int userId);
     Optional<Shelf> findById(int id);
-
     Optional<Shelf> findByUserAndName(User user, String name);
-
     void deleteAllByUser(User userById);
 }

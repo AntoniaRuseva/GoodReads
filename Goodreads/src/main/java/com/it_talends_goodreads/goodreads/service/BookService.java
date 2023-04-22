@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import com.it_talends_goodreads.goodreads.model.exceptions.NotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import org.slf4j.Logger;
@@ -74,7 +73,7 @@ public class BookService extends AbstractService {
                 .collect(Collectors.toList())).build();
 
     }
-    @Transactional
+
     public BookRatingDTO rate(int bookId, BookRateDTO bookRateDTO, int userId) {
 
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new NotFoundException("No such book"));

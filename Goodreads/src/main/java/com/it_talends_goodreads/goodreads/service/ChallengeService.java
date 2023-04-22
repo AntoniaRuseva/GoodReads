@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,7 +24,6 @@ public class ChallengeService extends AbstractService {
     private ShelfRepository shelfRepository;
     private static final Logger logger = LoggerFactory.getLogger(ChallengeService.class);
 
-    @Transactional
     public ChallengeWithoutOwnerDTO createChallenge(CreateChallengeDTO setChallengeDTO, int userId) {
         User user = getUserById(userId);
         if (challengeRepository.countByUserAndYear(userId) != 0) {
@@ -44,7 +42,7 @@ public class ChallengeService extends AbstractService {
 
     }
 
-    @Transactional
+
     public ChallengeWithoutOwnerDTO updateChallenge(int challengeId, CreateChallengeDTO setChallengeDTO, int userId) {
         Challenge challenge = exists(challengeId);
         if (authorized(userId, challenge)) {
@@ -56,7 +54,7 @@ public class ChallengeService extends AbstractService {
         return mapper.map(challenge, ChallengeWithoutOwnerDTO.class);
     }
 
-    @Transactional
+
     public void deleteChallenge(int challengeId, int userId) {
         Challenge challenge = exists(challengeId);
         if (authorized(userId, challenge)) {
@@ -95,7 +93,7 @@ public class ChallengeService extends AbstractService {
         return true;
     }
 
-    @Transactional
+
     public ChallengeProgressDTO getProgressByChallenge(int userId, int friendId, int challengeId) {
         User user = getUserById(userId);
         User friend = getUserById(friendId);

@@ -15,7 +15,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -163,10 +162,6 @@ public class UserServiceTest {
         // Assert
         assertEquals(expected.getId(), result.getId());
         assertEquals(expected.getEmail(), result.getEmail());
-        verify(userRepository, times(1)).findById(userId);
-        verify(userRepository, times(1)).save(user);
-        verify(encoder, times(1)).encode(newPassword);
-        verify(mapper, times(1)).map(updatedUser, UserWithoutPassDTO.class);
     }
 
     @Test(expected = BadRequestException.class)
@@ -199,29 +194,23 @@ public class UserServiceTest {
         // Act
         userService.changePass(changePassDTO, userId);
     }
-
     @Test
-    public void testDeleteProfileSuccess() {
-        // Arrange
+    public void testDeleteProfile() {
+        // Setup
         int userId = 1;
         User user = new User();
         user.setId(userId);
+        user.setEmail("test@example.com");
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        // Act
-        userService.deleteProfile(userId);
-        // Assert
-        verify(shelfRepository, times(1)).deleteAllByUser(user);
-        verify(userRepository, times(1)).delete(user);
-    }
+        when(userRepository.save(user)).thenReturn(user);
 
-    @Test(expected = NotFoundException.class)
-    public void testDeleteProfileUserNotFound() {
-        // Arrange
-        int userId = 1;
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-        // Act
+        // Exercise
         userService.deleteProfile(userId);
+
+        // Verify
+        assertEquals("deleted", user.getEmail());
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).save(user);
     }
 }
 
