@@ -23,7 +23,7 @@ Goodreads allows users to connect with other users, discover new books, and shar
 ### Notes
 In addition to these features, the is the ability to follow other users and rate books, as well as the functionality for CRUD operations for Books, Shelves, Comments,Reviews and Challenges.
 To use our API, simply send HTTP requests to the appropriate endpoints for each feature. All the endpoints and their expected parameters are documented using Swagger.
-It can be accessed by running the project and navigating to the following URL: http://{host}:{port}/swagger-ui.html.
+It can be accessed by running the project and navigating to the following URL: `http://{host}:{port}/swagger-ui.html`.
 We hope you enjoy exploring our Goodreads copy and look forward to hearing your feedback!
 
 ### Contributors:
