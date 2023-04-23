@@ -39,8 +39,8 @@ public class CommentController extends AbstractController {
         commentService.delete(id, userId);
         return "You delete comment with id " + id;
     }
-    @GetMapping("/comments/reviews/{id}")
-    public CommentPageDTO getAllByReview(@PathVariable int id, int pageN, int recordCount) {
+    @GetMapping("/comments/reviews/{id}/{pageN}/{recordCount}")
+    public CommentPageDTO getAllByReview(@PathVariable int id,@PathVariable int pageN,@PathVariable int recordCount) {
         return commentService.getAllByReview(id, pageN, recordCount);
     }
 }

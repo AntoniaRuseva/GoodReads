@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CommentPageDTO {
-    Page<CommentWithoutOwnerDTO> comments;
+    List<CommentWithoutOwnerDTO> comments;
     private int currentPage;
     private int totalPages;
 
