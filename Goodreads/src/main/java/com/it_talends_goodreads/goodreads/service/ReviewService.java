@@ -46,7 +46,7 @@ public class ReviewService extends AbstractService {
     @Transactional
     public String deleteReview(int id, int userId) {
         Review rev = checkIfReviewExists(id);
-        if (authorized(id, rev)) {
+        if (authorized(userId, rev)) {
             commentRepository.removeCommentsByReview(rev);
             reviewRepository.deleteById(id);
         }
@@ -77,8 +77,16 @@ public class ReviewService extends AbstractService {
                 .currentPage(pageN)
                 .totalPages(totalPages)
                 .reviews(list
-                        .map(r -> mapper.map(r, ReturnReviewWithoutBookDTO.class)).stream().toList())
-                        .build();
+                        .map(r -> ReturnReviewWithoutBookDTO
+                                .builder()
+                                .id(r.getId())
+                                .date(r.getDate())
+                                .content(r.getContent())
+                                .writer(mapper.map(r.getWriter(), UserWithoutPassDTO.class))
+                                .likes(r.getLikedBy().size())
+                                .build())
+                        .stream().toList())
+                .build();
     }
 
     public ReturnReviewWithoutBookDTO likeReview(int id, int userId) {
