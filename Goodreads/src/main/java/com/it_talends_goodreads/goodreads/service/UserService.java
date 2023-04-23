@@ -121,7 +121,7 @@ public class UserService extends AbstractService {
                 .builder()
                 .currentPage(pageN)
                 .totalPages(totalPages)
-                .users(list.map(u -> mapper.map(u, UserWithoutPassDTO.class)))
+                .users(list.map(u -> mapper.map(u, UserWithoutPassDTO.class)).stream().toList())
                 .build();
     }
 
@@ -376,7 +376,9 @@ public class UserService extends AbstractService {
                 .builder()
                 .currentPage(pageN)
                 .totalPages(totalPages)
-                .users(users.map(u -> mapper.map(u, UserWithoutPassDTO.class)))
+                .users(users.map(u -> mapper.map(u, UserWithoutPassDTO.class))
+                        .stream()
+                        .toList())
                 .build();
     }
 }

@@ -77,7 +77,7 @@ public class ReviewService extends AbstractService {
                 .currentPage(pageN)
                 .totalPages(totalPages)
                 .reviews(list
-                        .map(r -> mapper.map(r, ReturnReviewWithoutBookDTO.class)))
+                        .map(r -> mapper.map(r, ReturnReviewWithoutBookDTO.class)).stream().toList())
                         .build();
     }
 

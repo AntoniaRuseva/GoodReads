@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -119,8 +120,14 @@ public class CommentService extends AbstractService {
                 .builder()
                 .currentPage(pageN)
                 .totalPages(totalPages)
-                .comments(com
-                        .map(c -> mapper.map(c, CommentWithoutOwnerDTO.class)))
+                .comments(com.map(c -> CommentWithoutOwnerDTO
+                        .builder()
+                        .id(c.getId())
+                        .content(c.getContent())
+                        .reviewId(c.getReview().getId())
+                        .writerName(c.getWriter().getUserName())
+                        .build())
+                        .toList())
                 .build();
     }
 }
